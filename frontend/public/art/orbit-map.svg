@@ -1,0 +1,29 @@
+<svg width="720" height="420" viewBox="0 0 720 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="orbit-bg" x1="64" y1="32" x2="656" y2="388" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F7D9BF"/>
+      <stop offset="0.52" stop-color="#D8ECE5"/>
+      <stop offset="1" stop-color="#E6DCF7"/>
+    </linearGradient>
+    <radialGradient id="orbit-core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(360 210) rotate(90) scale(146 146)">
+      <stop offset="0" stop-color="white"/>
+      <stop offset="1" stop-color="#FFF6EE"/>
+    </radialGradient>
+  </defs>
+  <rect x="12" y="12" width="696" height="396" rx="36" fill="url(#orbit-bg)" opacity="0.9"/>
+  <path d="M92 92C160 48 272 28 360 28C492 28 622 76 622 210C622 344 492 392 360 392C264 392 166 360 104 304" stroke="#C36A42" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <path d="M114 130C170 94 258 74 360 74C476 74 576 124 576 210C576 296 476 346 360 346C280 346 208 324 150 286" stroke="#0F766E" stroke-width="5" stroke-linecap="round" opacity="0.5"/>
+  <path d="M170 210C170 124.947 249.947 56 335 56H384C470.053 56 550 124.947 550 210C550 295.053 470.053 364 384 364H334C248.999 364 170 295.053 170 210Z" stroke="#4F46E5" stroke-width="4" stroke-linecap="round" opacity="0.26"/>
+  <circle cx="360" cy="210" r="112" fill="url(#orbit-core)"/>
+  <circle cx="360" cy="210" r="92" stroke="#1D1D1B" stroke-opacity="0.08" stroke-width="2"/>
+  <path d="M360 126V210L414 246" stroke="#1D1D1B" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="360" cy="210" r="14" fill="#1D1D1B"/>
+  <circle cx="550" cy="210" r="14" fill="#0F766E"/>
+  <circle cx="170" cy="210" r="12" fill="#C36A42"/>
+  <circle cx="214" cy="118" r="11" fill="#4F46E5"/>
+  <circle cx="472" cy="118" r="10" fill="#0284C7"/>
+  <circle cx="472" cy="302" r="12" fill="#0F766E"/>
+  <circle cx="230" cy="310" r="10" fill="#C36A42"/>
+  <path d="M250 210H300" stroke="#C36A42" stroke-width="5" stroke-linecap="round"/>
+  <path d="M420 210H470" stroke="#0F766E" stroke-width="5" stroke-linecap="round"/>
+</svg>

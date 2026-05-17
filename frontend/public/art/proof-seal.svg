@@ -1,0 +1,13 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="proof-bg" x1="20" y1="18" x2="108" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F4E4D1"/>
+      <stop offset="1" stop-color="#D9EFE8"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="56" fill="url(#proof-bg)"/>
+  <circle cx="64" cy="64" r="44" stroke="#0F766E" stroke-width="4" stroke-dasharray="4 7"/>
+  <path d="M64 34L87 45V66C87 82 76 94 64 98C52 94 41 82 41 66V45L64 34Z" fill="#FFF9F3" stroke="#1D1D1B" stroke-width="4"/>
+  <path d="M54 64L61 71L75 56" stroke="#0F766E" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M64 104L55 116L64 120L73 116L64 104Z" fill="#C36A42"/>
+</svg>

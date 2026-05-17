@@ -58,6 +58,11 @@ class DecisionEventType(str, Enum):
     CONFIDENCE_SHIFT = "confidence_shift"
 
 
+class ProofGateState(str, Enum):
+    READY = "ready"
+    BLOCKED = "blocked"
+
+
 class Subgoal(BaseModel):
     id: str = Field(default_factory=lambda: f"SG-{uuid4().hex[:8]}")
     title: str
@@ -99,6 +104,7 @@ class RunStartRequest(BaseModel):
 
 class TurnInput(BaseModel):
     role: SpecialistRole
+    user_prompt: str = ""
     contribution: str = ""
     confidence: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
     evidence_refs: list[str] = Field(default_factory=list)
@@ -106,6 +112,7 @@ class TurnInput(BaseModel):
     pass_turn: bool = False
     requested_next_role: SpecialistRole | None = None
     priority_override: bool = False
+    specialist_output: "SpecialistOutput | None" = None
 
     @model_validator(mode="after")
     def validate_turn_payload(self) -> "TurnInput":
@@ -116,16 +123,29 @@ class TurnInput(BaseModel):
         return self
 
 
+class SpecialistOutput(BaseModel):
+    role: SpecialistRole
+    provider: str = "prompted_local_engine"
+    prompt_title: str
+    system_prompt: str
+    message: str
+    checklist: list[str] = Field(default_factory=list)
+    evidence_notes: list[str] = Field(default_factory=list)
+    suggested_next_role: SpecialistRole | None = None
+
+
 class TurnRecord(BaseModel):
     turn_number: int
     round_number: int
     role: SpecialistRole
+    user_prompt: str = ""
     outcome: TurnOutcome
     confidence: float
     confidence_delta_from_previous_turn: float
     usefulness_score: float
     evidence_refs: list[str]
     contribution: str
+    specialist_output: SpecialistOutput | None = None
     role_activation_reason: str
     requested_next_role: SpecialistRole | None
     next_role: SpecialistRole
@@ -135,6 +155,43 @@ class TurnRecord(BaseModel):
     fallback_layer_after: str
     fallback_transitioned: bool
     created_at: datetime = Field(default_factory=utc_now)
+
+
+class ProofGateStatus(BaseModel):
+    state: ProofGateState
+    ready_to_complete: bool
+    min_turns_required: int
+    turns_observed: int
+    evidence_refs_required: int
+    evidence_refs_observed: int
+    verifier_turn_required: bool
+    verifier_turn_observed: bool
+    minimum_average_confidence: float
+    observed_average_confidence: float
+    blockers: list[str] = Field(default_factory=list)
+    cleared_checks: list[str] = Field(default_factory=list)
+    last_evaluated_at: datetime = Field(default_factory=utc_now)
+
+
+def default_proof_gate_status() -> ProofGateStatus:
+    return ProofGateStatus(
+        state=ProofGateState.BLOCKED,
+        ready_to_complete=False,
+        min_turns_required=3,
+        turns_observed=0,
+        evidence_refs_required=2,
+        evidence_refs_observed=0,
+        verifier_turn_required=True,
+        verifier_turn_observed=False,
+        minimum_average_confidence=0.68,
+        observed_average_confidence=0.0,
+        blockers=[
+            "Run needs more specialist turns before it can be completed.",
+            "Evidence markers have not met the minimum threshold yet.",
+            "Verifier review has not been recorded yet.",
+        ],
+        cleared_checks=[],
+    )
 
 
 class Run(BaseModel):
@@ -156,6 +213,7 @@ class Run(BaseModel):
     paused_roles: list[SpecialistRole] = Field(default_factory=list)
     status: RunStatus = RunStatus.ACTIVE
     turn_history: list[TurnRecord] = Field(default_factory=list)
+    proof_gate_status: ProofGateStatus = Field(default_factory=default_proof_gate_status)
     min_usefulness: float
     max_low_value_streak: int
     enable_priority_preemption: bool
@@ -175,6 +233,7 @@ class RunReport(BaseModel):
     role_avg_usefulness: dict[SpecialistRole, float]
     paused_roles: list[SpecialistRole]
     fallback_layer: str
+    proof_gate_status: ProofGateStatus
 
 
 class DecisionLedgerEntry(BaseModel):
@@ -210,3 +269,8 @@ class SkillRecommendation(BaseModel):
     latency_penalty: float
     risk_reduction: float
     rationale: str
+
+
+class AutoTurnRequest(BaseModel):
+    user_prompt: str = Field(min_length=3, max_length=4000)
+    priority_override: bool = False

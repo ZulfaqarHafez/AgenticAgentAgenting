@@ -1,6 +1,7 @@
 import {
   DecisionLedgerEntry,
   Goal,
+  ProofGateStatus,
   RunMode,
   RuntimeStatus,
   Run,
@@ -52,6 +53,16 @@ export function getApiBase(): string {
 
 export function listGoals(): Promise<Goal[]> {
   return request<Goal[]>("/goals", { method: "GET", cache: "no-store" });
+}
+
+export function listRuns(goalId?: string): Promise<Run[]> {
+  if (goalId) {
+    return request<Run[]>(`/goals/${goalId}/runs`, {
+      method: "GET",
+      cache: "no-store",
+    });
+  }
+  return request<Run[]>("/runs", { method: "GET", cache: "no-store" });
 }
 
 export function createGoal(input: {
@@ -142,6 +153,7 @@ export function applyTurn(
   runId: string,
   input: {
     role: SpecialistRole;
+    user_prompt?: string;
     contribution?: string;
     confidence: number;
     evidence_refs?: string[];
@@ -163,6 +175,29 @@ export function applyTurn(
   });
 }
 
+export function runAutoTurn(
+  runId: string,
+  input: {
+    user_prompt: string;
+    priority_override?: boolean;
+  }
+): Promise<Run> {
+  return request<Run>(`/runs/${runId}/auto-turn`, {
+    method: "POST",
+    body: JSON.stringify({
+      priority_override: false,
+      ...input,
+    }),
+  });
+}
+
+export function getRun(runId: string): Promise<Run> {
+  return request<Run>(`/runs/${runId}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+}
+
 export function getRunReport(runId: string): Promise<RunReport> {
   return request<RunReport>(`/runs/${runId}/report`, {
     method: "GET",
@@ -174,6 +209,19 @@ export function getDecisionLedger(runId: string): Promise<DecisionLedgerEntry[]>
   return request<DecisionLedgerEntry[]>(`/runs/${runId}/ledger`, {
     method: "GET",
     cache: "no-store",
+  });
+}
+
+export function getProofGate(runId: string): Promise<ProofGateStatus> {
+  return request<ProofGateStatus>(`/runs/${runId}/proof-gate`, {
+    method: "GET",
+    cache: "no-store",
+  });
+}
+
+export function completeRun(runId: string): Promise<Run> {
+  return request<Run>(`/runs/${runId}/complete`, {
+    method: "POST",
   });
 }
 

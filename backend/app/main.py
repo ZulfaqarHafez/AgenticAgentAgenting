@@ -4,9 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api_models import HealthResponse, RuntimeStatusResponse
 from app.models import (
+    AutoTurnRequest,
     DecisionLedgerEntry,
     Goal,
     GoalCreateRequest,
+    ProofGateStatus,
     Run,
     RunMode,
     RunReport,
@@ -21,6 +23,7 @@ from app.models import (
 from app.orchestration.langgraph_graph import build_bootstrap_graph
 from app.orchestration.ring_graph import build_turn_graph
 from app.orchestration.scheduler import CircleJunctionScheduler
+from app.orchestration.specialist_engine import SpecialistEngine
 from app.orchestration.skill_registry import recommend_skills
 from app.settings import load_settings
 from app.store import build_store
@@ -54,6 +57,7 @@ app.add_middleware(
 
 _store = build_store(_settings)
 _scheduler = CircleJunctionScheduler()
+_specialist_engine = SpecialistEngine()
 _bootstrap_graph = build_bootstrap_graph()
 _turn_graph = build_turn_graph(_scheduler)
 _server_started_at = utc_now()
@@ -137,6 +141,14 @@ def get_goal(goal_id: str) -> Goal:
     return goal
 
 
+@app.get("/goals/{goal_id}/runs", response_model=list[Run])
+def list_goal_runs(goal_id: str) -> list[Run]:
+    goal = _store.get_goal(goal_id)
+    if not goal:
+        raise HTTPException(status_code=404, detail="goal not found")
+    return [run for run in _store.list_runs() if run.goal_id == goal_id]
+
+
 @app.post("/goals/{goal_id}/runs", response_model=Run, status_code=201)
 def start_run(
     goal_id: str, request: RunStartRequest = Body(default_factory=RunStartRequest)
@@ -179,6 +191,24 @@ def get_run(run_id: str) -> Run:
     return run
 
 
+@app.get("/runs", response_model=list[Run])
+def list_runs() -> list[Run]:
+    return _store.list_runs()
+
+
+@app.post("/runs/{run_id}/auto-turn", response_model=Run)
+def auto_turn(run_id: str, request: AutoTurnRequest) -> Run:
+    run = _store.get_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    goal = _store.get_goal(run.goal_id)
+    if not goal:
+        raise HTTPException(status_code=404, detail="goal not found")
+    generated_turn = _specialist_engine.build_turn(goal, run, request)
+    updated = _turn_graph.invoke({"run": run, "turn": generated_turn})["run"]
+    return _store.update_run(updated)
+
+
 @app.post("/runs/{run_id}/turns", response_model=Run)
 def apply_turn(run_id: str, turn: TurnInput) -> Run:
     run = _store.get_run(run_id)
@@ -204,11 +234,27 @@ def get_run_ledger(run_id: str) -> list[DecisionLedgerEntry]:
     return _scheduler.build_decision_ledger(run)
 
 
+@app.get("/runs/{run_id}/proof-gate", response_model=ProofGateStatus)
+def get_run_proof_gate(run_id: str) -> ProofGateStatus:
+    run = _store.get_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    return run.proof_gate_status
+
+
 @app.post("/runs/{run_id}/complete", response_model=Run)
 def complete_run(run_id: str) -> Run:
     run = _store.get_run(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
+    if not run.proof_gate_status.ready_to_complete:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "proof gate blocked completion",
+                "blockers": run.proof_gate_status.blockers,
+            },
+        )
     run.status = RunStatus.COMPLETED
     return _store.update_run(run)
 

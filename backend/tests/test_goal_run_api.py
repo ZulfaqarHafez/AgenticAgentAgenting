@@ -68,6 +68,7 @@ def test_goal_lifecycle_and_run_report() -> None:
     assert report["role_turn_counts"]["planner"] == 1
     assert report["role_turn_counts"]["research"] == 1
     assert report["fallback_layer"] == "layer_1_circle_junction"
+    assert report["proof_gate_status"]["state"] == "blocked"
 
     ledger_response = client.get(f"/runs/{run_id}/ledger")
     assert ledger_response.status_code == 200
@@ -176,3 +177,116 @@ def test_start_run_lite_mode_limits_auto_role_depth() -> None:
     run = run_response.json()
     assert run["run_mode"] == "lite"
     assert len(run["active_roles"]) == 2
+
+
+def test_auto_turn_generates_specialist_output_and_persists_history() -> None:
+    goal_response = client.post(
+        "/goals",
+        json={
+            "title": "Auto turn generation",
+            "success_criteria": ["Generate differentiated specialist output"],
+            "constraints": ["Keep baton visible"],
+            "priority": "high",
+        },
+    )
+    assert goal_response.status_code == 201
+    goal_id = goal_response.json()["goal_id"]
+
+    run_response = client.post(
+        f"/goals/{goal_id}/runs",
+        json={"run_mode": "balanced"},
+    )
+    assert run_response.status_code == 201
+    run_id = run_response.json()["run_id"]
+
+    auto_turn_response = client.post(
+        f"/runs/{run_id}/auto-turn",
+        json={"user_prompt": "Map the baton and the fallback path."},
+    )
+    assert auto_turn_response.status_code == 200
+    updated_run = auto_turn_response.json()
+    latest_turn = updated_run["turn_history"][-1]
+    assert latest_turn["user_prompt"] == "Map the baton and the fallback path."
+    assert latest_turn["specialist_output"]["provider"] == "prompted_local_engine"
+    assert latest_turn["specialist_output"]["prompt_title"]
+    assert any(
+        marker in latest_turn["contribution"]
+        for marker in [
+            "Mission frame",
+            "Signals",
+            "Proof check",
+            "Implementation move",
+            "Contrarian read",
+        ]
+    )
+
+
+def test_proof_gate_blocks_then_allows_completion() -> None:
+    goal_response = client.post(
+        "/goals",
+        json={
+            "title": "Proof gate completion",
+            "success_criteria": ["Require verifier before completion"],
+            "constraints": ["Need evidence"],
+            "priority": "high",
+        },
+    )
+    assert goal_response.status_code == 201
+    goal_id = goal_response.json()["goal_id"]
+
+    run_response = client.post(
+        f"/goals/{goal_id}/runs",
+        json={"run_mode": "balanced"},
+    )
+    assert run_response.status_code == 201
+    run_id = run_response.json()["run_id"]
+
+    blocked_completion = client.post(f"/runs/{run_id}/complete")
+    assert blocked_completion.status_code == 409
+    assert "proof gate blocked completion" in blocked_completion.text
+
+    for prompt in [
+        "Plan the system.",
+        "Research supporting evidence.",
+        "Verify release readiness.",
+    ]:
+        auto_turn_response = client.post(
+            f"/runs/{run_id}/auto-turn",
+            json={"user_prompt": prompt},
+        )
+        assert auto_turn_response.status_code == 200
+
+    proof_gate_response = client.get(f"/runs/{run_id}/proof-gate")
+    assert proof_gate_response.status_code == 200
+    proof_gate = proof_gate_response.json()
+    assert proof_gate["ready_to_complete"] is True
+    assert proof_gate["verifier_turn_observed"] is True
+
+    completed_response = client.post(f"/runs/{run_id}/complete")
+    assert completed_response.status_code == 200
+    assert completed_response.json()["status"] == "completed"
+
+
+def test_goal_run_history_lists_persisted_runs() -> None:
+    goal_response = client.post(
+        "/goals",
+        json={
+            "title": "Run history goal",
+            "success_criteria": ["Persist two runs"],
+            "constraints": [],
+            "priority": "medium",
+        },
+    )
+    assert goal_response.status_code == 201
+    goal_id = goal_response.json()["goal_id"]
+
+    first_run = client.post(f"/goals/{goal_id}/runs", json={"run_mode": "lite"})
+    second_run = client.post(f"/goals/{goal_id}/runs", json={"run_mode": "balanced"})
+    assert first_run.status_code == 201
+    assert second_run.status_code == 201
+
+    history_response = client.get(f"/goals/{goal_id}/runs")
+    assert history_response.status_code == 200
+    history = history_response.json()
+    assert len(history) >= 2
+    assert all(item["goal_id"] == goal_id for item in history)

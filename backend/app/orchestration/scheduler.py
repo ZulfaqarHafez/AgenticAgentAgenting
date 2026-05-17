@@ -7,8 +7,11 @@ from fastapi import HTTPException
 from app.models import (
     DecisionEventType,
     DecisionLedgerEntry,
+    ProofGateState,
+    ProofGateStatus,
     Run,
     RunReport,
+    RunMode,
     RunStartRequest,
     RunStatus,
     SpecialistRole,
@@ -25,8 +28,9 @@ class CircleJunctionScheduler:
             raise HTTPException(status_code=422, detail="active_roles must not be empty")
         current_role = request.active_roles[0]
         low_value_streaks = {role: 0 for role in request.active_roles}
-        return Run(
+        run = Run(
             goal_id=goal_id,
+            run_mode=request.run_mode,
             active_roles=request.active_roles,
             current_role=current_role,
             low_value_streaks=low_value_streaks,
@@ -34,6 +38,8 @@ class CircleJunctionScheduler:
             max_low_value_streak=request.max_low_value_streak,
             enable_priority_preemption=request.enable_priority_preemption,
         )
+        run.proof_gate_status = self.evaluate_proof_gate(run)
+        return run
 
     def apply_turn(self, run: Run, turn: TurnInput) -> Run:
         if run.status != RunStatus.ACTIVE:
@@ -104,6 +110,7 @@ class CircleJunctionScheduler:
             turn_number=run.turn_number,
             round_number=run.round_number,
             role=role,
+            user_prompt=turn.user_prompt,
             outcome=outcome,
             confidence=turn.confidence,
             confidence_delta_from_previous_turn=round(
@@ -112,6 +119,7 @@ class CircleJunctionScheduler:
             usefulness_score=turn.usefulness_score,
             evidence_refs=turn.evidence_refs,
             contribution=turn.contribution,
+            specialist_output=turn.specialist_output,
             role_activation_reason=role_activation_reason,
             requested_next_role=turn.requested_next_role,
             next_role=next_role,
@@ -122,6 +130,7 @@ class CircleJunctionScheduler:
             fallback_transitioned=fallback_before != fallback_after,
         )
         run.turn_history.append(record)
+        run.proof_gate_status = self.evaluate_proof_gate(run)
         run.updated_at = utc_now()
         return run
 
@@ -159,6 +168,78 @@ class CircleJunctionScheduler:
             role_avg_usefulness=avg_usefulness,
             paused_roles=run.paused_roles,
             fallback_layer=self._fallback_layer(run),
+            proof_gate_status=run.proof_gate_status,
+        )
+
+    def evaluate_proof_gate(self, run: Run) -> ProofGateStatus:
+        min_turns, min_evidence, min_confidence = self._proof_gate_policy(run.run_mode)
+        turns_observed = len(run.turn_history)
+        evidence_refs = {
+            ref
+            for record in run.turn_history
+            for ref in record.evidence_refs
+            if ref.strip()
+        }
+        verifier_turn_observed = any(
+            record.role == SpecialistRole.VERIFIER for record in run.turn_history
+        )
+        observed_average_confidence = (
+            round(
+                sum(record.confidence for record in run.turn_history) / turns_observed,
+                3,
+            )
+            if turns_observed
+            else 0.0
+        )
+
+        blockers: list[str] = []
+        cleared_checks: list[str] = []
+
+        if turns_observed < min_turns:
+            blockers.append(
+                f"Need at least {min_turns} specialist turns before completion."
+            )
+        else:
+            cleared_checks.append(f"Minimum turn depth reached ({turns_observed}/{min_turns}).")
+
+        if len(evidence_refs) < min_evidence:
+            blockers.append(
+                f"Need at least {min_evidence} evidence markers before completion."
+            )
+        else:
+            cleared_checks.append(
+                f"Evidence threshold cleared ({len(evidence_refs)}/{min_evidence})."
+            )
+
+        if not verifier_turn_observed:
+            blockers.append("Verifier review must occur before completion.")
+        else:
+            cleared_checks.append("Verifier review recorded.")
+
+        if observed_average_confidence < min_confidence:
+            blockers.append(
+                f"Average confidence must reach {min_confidence:.2f} before completion."
+            )
+        else:
+            cleared_checks.append(
+                f"Average confidence cleared ({observed_average_confidence:.2f}/{min_confidence:.2f})."
+            )
+
+        ready = len(blockers) == 0
+        return ProofGateStatus(
+            state=ProofGateState.READY if ready else ProofGateState.BLOCKED,
+            ready_to_complete=ready,
+            min_turns_required=min_turns,
+            turns_observed=turns_observed,
+            evidence_refs_required=min_evidence,
+            evidence_refs_observed=len(evidence_refs),
+            verifier_turn_required=True,
+            verifier_turn_observed=verifier_turn_observed,
+            minimum_average_confidence=min_confidence,
+            observed_average_confidence=observed_average_confidence,
+            blockers=blockers,
+            cleared_checks=cleared_checks,
+            last_evaluated_at=utc_now(),
         )
 
     def _fallback_layer(self, run: Run) -> str:
@@ -169,6 +250,13 @@ class CircleJunctionScheduler:
         ):
             return "layer_2_verifier_guard"
         return "layer_1_circle_junction"
+
+    def _proof_gate_policy(self, run_mode: RunMode) -> tuple[int, int, float]:
+        if run_mode == RunMode.LITE:
+            return (2, 1, 0.58)
+        if run_mode == RunMode.POWER:
+            return (4, 3, 0.74)
+        return (3, 2, 0.68)
 
     def build_decision_ledger(self, run: Run) -> list[DecisionLedgerEntry]:
         entries: list[DecisionLedgerEntry] = []
