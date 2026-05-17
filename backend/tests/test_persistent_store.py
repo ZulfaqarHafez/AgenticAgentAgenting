@@ -31,6 +31,7 @@ def test_build_store_memory_backend() -> None:
         database_url="postgresql+psycopg://postgres:postgres@localhost:5432/hive_agent",
         redis_url="redis://localhost:6379/0",
         redis_run_ttl_seconds=900,
+        cors_origins=["http://localhost:3000"],
     )
     store = build_store(settings)
     assert isinstance(store, InMemoryStore)

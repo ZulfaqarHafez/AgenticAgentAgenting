@@ -1,6 +1,7 @@
 export type GoalPriority = "low" | "medium" | "high" | "critical";
 export type GoalStatus = "active" | "completed" | "blocked";
 export type RunStatus = "active" | "completed" | "halted";
+export type RunMode = "lite" | "balanced" | "power";
 export type SpecialistRole =
   | "research"
   | "planner"
@@ -45,7 +46,11 @@ export interface TurnRecord {
 export interface Run {
   run_id: string;
   goal_id: string;
+  run_mode: RunMode;
   active_roles: SpecialistRole[];
+  activation_strategy: string;
+  activation_recommendations: SkillRecommendation[];
+  current_role_activation_reason: string;
   current_role: SpecialistRole;
   current_index: number;
   round_number: number;
@@ -85,4 +90,29 @@ export interface DecisionLedgerEntry {
   fallback_from?: string | null;
   fallback_to?: string | null;
   created_at: string;
+}
+
+export interface RuntimeStatus {
+  status: string;
+  service: string;
+  api_version: string;
+  contract_version: string;
+  recommended_roles_supported: boolean;
+  decision_ledger_supported: boolean;
+  store_backend: string;
+  server_started_at: string;
+  server_now: string;
+  uptime_seconds: number;
+  total_runs: number;
+  active_runs: number;
+}
+
+export interface SkillRecommendation {
+  role: SpecialistRole;
+  activation_score: number;
+  expected_utility: number;
+  cost_penalty: number;
+  latency_penalty: number;
+  risk_reduction: number;
+  rationale: string;
 }

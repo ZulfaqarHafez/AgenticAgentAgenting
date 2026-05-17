@@ -76,3 +76,103 @@ def test_goal_lifecycle_and_run_report() -> None:
     event_types = [event["event_type"] for event in ledger]
     assert "role_activation" in event_types
     assert "confidence_shift" in event_types
+
+
+def test_start_run_auto_recommended_roles() -> None:
+    goal_response = client.post(
+        "/goals",
+        json={
+            "title": "Auto role goal",
+            "success_criteria": ["Use recommendations"],
+            "constraints": ["Verify role selection"],
+            "priority": "high",
+        },
+    )
+    assert goal_response.status_code == 201
+    goal_id = goal_response.json()["goal_id"]
+
+    run_response = client.post(
+        f"/goals/{goal_id}/runs",
+        json={
+            "include_roles": ["planner", "research", "verifier"],
+            "auto_role_limit": 3,
+            "min_usefulness": 0.35,
+            "max_low_value_streak": 2,
+            "enable_priority_preemption": True,
+        },
+    )
+    assert run_response.status_code == 201
+    run = run_response.json()
+    assert run["activation_strategy"] == "recommended_roles"
+    assert len(run["active_roles"]) == 3
+    assert len(run["activation_recommendations"]) == 3
+
+
+def test_start_run_with_empty_body_uses_recommended_roles() -> None:
+    goal_response = client.post(
+        "/goals",
+        json={
+            "title": "Body omitted goal",
+            "success_criteria": ["Allow body omission"],
+            "constraints": ["Use default role recommendation"],
+            "priority": "medium",
+        },
+    )
+    assert goal_response.status_code == 201
+    goal_id = goal_response.json()["goal_id"]
+
+    run_response = client.post(f"/goals/{goal_id}/runs")
+    assert run_response.status_code == 201
+    run = run_response.json()
+    assert run["activation_strategy"] == "recommended_roles"
+    assert len(run["active_roles"]) >= 1
+
+
+def test_start_run_power_mode_expands_role_depth() -> None:
+    goal_response = client.post(
+        "/goals",
+        json={
+            "title": "Power mode goal",
+            "success_criteria": ["Activate broader specialist depth"],
+            "constraints": [],
+            "priority": "high",
+        },
+    )
+    assert goal_response.status_code == 201
+    goal_id = goal_response.json()["goal_id"]
+
+    run_response = client.post(
+        f"/goals/{goal_id}/runs",
+        json={
+            "run_mode": "power",
+        },
+    )
+    assert run_response.status_code == 201
+    run = run_response.json()
+    assert run["run_mode"] == "power"
+    assert len(run["active_roles"]) == 5
+
+
+def test_start_run_lite_mode_limits_auto_role_depth() -> None:
+    goal_response = client.post(
+        "/goals",
+        json={
+            "title": "Lite mode goal",
+            "success_criteria": ["Stay lightweight"],
+            "constraints": [],
+            "priority": "medium",
+        },
+    )
+    assert goal_response.status_code == 201
+    goal_id = goal_response.json()["goal_id"]
+
+    run_response = client.post(
+        f"/goals/{goal_id}/runs",
+        json={
+            "run_mode": "lite",
+        },
+    )
+    assert run_response.status_code == 201
+    run = run_response.json()
+    assert run["run_mode"] == "lite"
+    assert len(run["active_roles"]) == 2

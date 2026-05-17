@@ -1,6 +1,8 @@
 import {
   DecisionLedgerEntry,
   Goal,
+  RunMode,
+  RuntimeStatus,
   Run,
   RunReport,
   SpecialistRole,
@@ -9,6 +11,19 @@ import {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ??
   "http://localhost:8000";
+
+export class ApiError extends Error {
+  status: number;
+  bodyText: string;
+  bodyJson: unknown;
+
+  constructor(status: number, bodyText: string, bodyJson: unknown) {
+    super(`API ${status}: ${bodyText}`);
+    this.status = status;
+    this.bodyText = bodyText;
+    this.bodyJson = bodyJson;
+  }
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -20,7 +35,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`API ${response.status}: ${text}`);
+    let bodyJson: unknown = null;
+    try {
+      bodyJson = JSON.parse(text);
+    } catch {
+      bodyJson = null;
+    }
+    throw new ApiError(response.status, text, bodyJson);
   }
   return response.json() as Promise<T>;
 }
@@ -45,16 +66,76 @@ export function createGoal(input: {
   });
 }
 
-export function startRun(goalId: string, roles: SpecialistRole[]): Promise<Run> {
+export interface StartRunResult {
+  run: Run;
+  compatibilityFallbackUsed: boolean;
+}
+
+function isMissingActiveRolesError(error: unknown): boolean {
+  if (!(error instanceof ApiError) || error.status !== 422) {
+    return false;
+  }
+
+  const detail = (error.bodyJson as { detail?: Array<{ loc?: unknown[]; msg?: string }> } | null)
+    ?.detail;
+
+  return (
+    Array.isArray(detail) &&
+    detail.some(
+      (issue) =>
+        Array.isArray(issue.loc) &&
+        issue.loc.includes("active_roles") &&
+        typeof issue.msg === "string" &&
+        issue.msg.toLowerCase().includes("required")
+    )
+  );
+}
+
+export function startRun(
+  goalId: string,
+  options?: {
+    roles?: SpecialistRole[];
+    includeRoles?: SpecialistRole[];
+    autoRoleLimit?: number;
+    runMode?: RunMode;
+  }
+): Promise<StartRunResult> {
+  const payload = {
+    run_mode: options?.runMode ?? "balanced",
+    active_roles: options?.roles,
+    include_roles: options?.includeRoles,
+    auto_role_limit: options?.autoRoleLimit ?? 3,
+    min_usefulness: 0.35,
+    max_low_value_streak: 2,
+    enable_priority_preemption: true,
+  };
+
   return request<Run>(`/goals/${goalId}/runs`, {
     method: "POST",
-    body: JSON.stringify({
-      active_roles: roles,
-      min_usefulness: 0.35,
-      max_low_value_streak: 2,
-      enable_priority_preemption: true,
-    }),
-  });
+    body: JSON.stringify(payload),
+  })
+    .then((run) => ({
+      run,
+      compatibilityFallbackUsed: false,
+    }))
+    .catch(async (error) => {
+      if (options?.roles || !isMissingActiveRolesError(error)) {
+        throw error;
+      }
+
+      const fallbackRun = await request<Run>(`/goals/${goalId}/runs`, {
+        method: "POST",
+        body: JSON.stringify({
+          ...payload,
+          active_roles: options?.includeRoles ?? ["planner", "research", "verifier"],
+        }),
+      });
+
+      return {
+        run: fallbackRun,
+        compatibilityFallbackUsed: true,
+      };
+    });
 }
 
 export function applyTurn(
@@ -91,6 +172,13 @@ export function getRunReport(runId: string): Promise<RunReport> {
 
 export function getDecisionLedger(runId: string): Promise<DecisionLedgerEntry[]> {
   return request<DecisionLedgerEntry[]>(`/runs/${runId}/ledger`, {
+    method: "GET",
+    cache: "no-store",
+  });
+}
+
+export function getRuntimeStatus(): Promise<RuntimeStatus> {
+  return request<RuntimeStatus>("/runtime/status", {
     method: "GET",
     cache: "no-store",
   });

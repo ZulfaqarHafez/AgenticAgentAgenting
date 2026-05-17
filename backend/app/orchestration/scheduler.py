@@ -21,6 +21,8 @@ from app.models import (
 
 class CircleJunctionScheduler:
     def initialize_run(self, goal_id: str, request: RunStartRequest) -> Run:
+        if not request.active_roles:
+            raise HTTPException(status_code=422, detail="active_roles must not be empty")
         current_role = request.active_roles[0]
         low_value_streaks = {role: 0 for role in request.active_roles}
         return Run(

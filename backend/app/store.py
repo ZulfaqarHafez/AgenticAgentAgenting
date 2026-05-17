@@ -42,6 +42,9 @@ class Store(Protocol):
     def update_run(self, run: Run) -> Run:
         ...
 
+    def list_runs(self) -> list[Run]:
+        ...
+
 
 @dataclass
 class InMemoryState:
@@ -93,6 +96,10 @@ class InMemoryStore:
         with self._lock:
             self._state.runs[run.run_id] = run
         return run
+
+    def list_runs(self) -> list[Run]:
+        with self._lock:
+            return list(self._state.runs.values())
 
 
 class SqlBase(DeclarativeBase):
@@ -174,6 +181,11 @@ class PostgresRedisStore:
     def update_run(self, run: Run) -> Run:
         run.updated_at = utc_now()
         return self._upsert_run(run)
+
+    def list_runs(self) -> list[Run]:
+        with self._sessions() as session:
+            rows = session.scalars(select(RunRecord).order_by(RunRecord.updated_at.desc()))
+            return [Run.model_validate(row.payload) for row in rows]
 
     def _upsert_goal(self, goal: Goal) -> Goal:
         payload = goal.model_dump(mode="json")

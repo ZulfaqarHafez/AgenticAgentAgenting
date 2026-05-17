@@ -31,6 +31,12 @@ class RunStatus(str, Enum):
     HALTED = "halted"
 
 
+class RunMode(str, Enum):
+    LITE = "lite"
+    BALANCED = "balanced"
+    POWER = "power"
+
+
 class SpecialistRole(str, Enum):
     RESEARCH = "research"
     PLANNER = "planner"
@@ -82,7 +88,10 @@ class Goal(BaseModel):
 
 
 class RunStartRequest(BaseModel):
-    active_roles: list[SpecialistRole] = Field(min_length=1)
+    run_mode: RunMode = RunMode.BALANCED
+    active_roles: list[SpecialistRole] | None = None
+    include_roles: list[SpecialistRole] | None = None
+    auto_role_limit: int = Field(default=3, ge=1, le=5)
     min_usefulness: Annotated[float, Field(ge=0.0, le=1.0)] = 0.35
     max_low_value_streak: int = Field(ge=1, le=10, default=2)
     enable_priority_preemption: bool = True
@@ -131,7 +140,10 @@ class TurnRecord(BaseModel):
 class Run(BaseModel):
     run_id: str = Field(default_factory=lambda: f"R-{uuid4().hex[:10]}")
     goal_id: str
+    run_mode: RunMode = RunMode.BALANCED
     active_roles: list[SpecialistRole]
+    activation_strategy: str = "manual_active_roles"
+    activation_recommendations: list["SkillRecommendation"] = Field(default_factory=list)
     current_index: int = 0
     current_role: SpecialistRole
     current_role_activation_reason: str = (
