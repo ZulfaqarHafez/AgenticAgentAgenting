@@ -349,6 +349,48 @@ body {
   color: var(--ink-1);
 }
 
+.ledger-list {
+  display: grid;
+  gap: 0.52rem;
+  max-height: 270px;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.ledger-item {
+  border: 1px solid var(--panel-border);
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.68);
+  padding: 0.5rem 0.55rem;
+}
+
+.ledger-meta {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-1);
+}
+
+.ledger-meta strong {
+  color: var(--accent-2);
+}
+
+.ledger-reason {
+  margin: 0.3rem 0 0;
+  font-size: 0.83rem;
+  line-height: 1.35;
+}
+
+.ledger-supplement {
+  margin: 0.26rem 0 0;
+  color: var(--ink-1);
+  font-size: 0.77rem;
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;

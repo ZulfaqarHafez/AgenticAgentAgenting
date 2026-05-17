@@ -5,12 +5,19 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   applyTurn,
   createGoal,
+  getDecisionLedger,
   getApiBase,
   getRunReport,
   listGoals,
   startRun,
 } from "@/lib/api";
-import { Goal, Run, RunReport, SpecialistRole } from "@/types/hive";
+import {
+  DecisionLedgerEntry,
+  Goal,
+  Run,
+  RunReport,
+  SpecialistRole,
+} from "@/types/hive";
 
 type ChatSpeaker = "user" | "system" | "agent";
 
@@ -60,6 +67,7 @@ export function HiveShell() {
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [run, setRun] = useState<Run | null>(null);
   const [report, setReport] = useState<RunReport | null>(null);
+  const [ledger, setLedger] = useState<DecisionLedgerEntry[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,8 +133,12 @@ export function HiveShell() {
     if (!run || run.goal_id !== resolvedGoal.goal_id) {
       const newRun = await startRun(resolvedGoal.goal_id, ROLE_ROTATION);
       setRun(newRun);
-      const newReport = await getRunReport(newRun.run_id);
+      const [newReport, newLedger] = await Promise.all([
+        getRunReport(newRun.run_id),
+        getDecisionLedger(newRun.run_id),
+      ]);
       setReport(newReport);
+      setLedger(newLedger);
       return { goal: resolvedGoal, activeRun: newRun };
     }
 
@@ -146,8 +158,12 @@ export function HiveShell() {
     });
     setRun(updatedRun);
 
-    const updatedReport = await getRunReport(updatedRun.run_id);
+    const [updatedReport, updatedLedger] = await Promise.all([
+      getRunReport(updatedRun.run_id),
+      getDecisionLedger(updatedRun.run_id),
+    ]);
     setReport(updatedReport);
+    setLedger(updatedLedger);
 
     setMessages((prev) => [
       ...prev,
@@ -201,7 +217,12 @@ export function HiveShell() {
         pass_turn: true,
       });
       setRun(updatedRun);
-      setReport(await getRunReport(updatedRun.run_id));
+      const [updatedReport, updatedLedger] = await Promise.all([
+        getRunReport(updatedRun.run_id),
+        getDecisionLedger(updatedRun.run_id),
+      ]);
+      setReport(updatedReport);
+      setLedger(updatedLedger);
       setMessages((prev) => [
         ...prev,
         {
@@ -306,6 +327,43 @@ export function HiveShell() {
                 </li>
               ))}
             </ul>
+          </article>
+
+          <article className="artifact-card">
+            <h2>Decision Ledger</h2>
+            {ledger.length > 0 ? (
+              <div className="ledger-list">
+                {ledger
+                  .slice(-8)
+                  .reverse()
+                  .map((entry) => (
+                    <div key={entry.event_id} className="ledger-item">
+                      <p className="ledger-meta">
+                        <span>T{entry.turn_number}</span>
+                        <strong>{entry.event_type.replaceAll("_", " ")}</strong>
+                      </p>
+                      <p className="ledger-reason">{entry.reason}</p>
+                      {typeof entry.confidence_delta === "number" ? (
+                        <p className="ledger-supplement">
+                          Confidence {entry.confidence_before?.toFixed(2)} -&gt;{" "}
+                          {entry.confidence_after?.toFixed(2)} (
+                          {entry.confidence_delta >= 0 ? "+" : ""}
+                          {entry.confidence_delta.toFixed(2)})
+                        </p>
+                      ) : null}
+                      {entry.fallback_from && entry.fallback_to ? (
+                        <p className="ledger-supplement">
+                          Fallback {entry.fallback_from} -&gt; {entry.fallback_to}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="muted">
+                Decision events appear after turns are processed.
+              </p>
+            )}
           </article>
 
           <article className="artifact-card">

@@ -68,3 +68,11 @@ def test_goal_lifecycle_and_run_report() -> None:
     assert report["role_turn_counts"]["planner"] == 1
     assert report["role_turn_counts"]["research"] == 1
     assert report["fallback_layer"] == "layer_1_circle_junction"
+
+    ledger_response = client.get(f"/runs/{run_id}/ledger")
+    assert ledger_response.status_code == 200
+    ledger = ledger_response.json()
+    assert len(ledger) >= 4
+    event_types = [event["event_type"] for event in ledger]
+    assert "role_activation" in event_types
+    assert "confidence_shift" in event_types

@@ -17,6 +17,10 @@ Goal-driven multi-agent MVP with:
 cd backend
 python -m venv .venv
 .\.venv\Scripts\python -m pip install -e .[dev]
+# Optional persistence mode:
+# $env:HIVE_STORE_BACKEND="postgres_redis"
+# $env:HIVE_DATABASE_URL="postgresql+psycopg://postgres:postgres@localhost:5432/hive_agent"
+# $env:HIVE_REDIS_URL="redis://localhost:6379/0"
 .\.venv\Scripts\python -m uvicorn app.main:app --reload --port 8000
 ```
 

@@ -46,6 +46,12 @@ class TurnOutcome(str, Enum):
     PRIORITY_PREEMPTED = "priority_preempted"
 
 
+class DecisionEventType(str, Enum):
+    ROLE_ACTIVATION = "role_activation"
+    FALLBACK_TRANSITION = "fallback_transition"
+    CONFIDENCE_SHIFT = "confidence_shift"
+
+
 class Subgoal(BaseModel):
     id: str = Field(default_factory=lambda: f"SG-{uuid4().hex[:8]}")
     title: str
@@ -107,12 +113,18 @@ class TurnRecord(BaseModel):
     role: SpecialistRole
     outcome: TurnOutcome
     confidence: float
+    confidence_delta_from_previous_turn: float
     usefulness_score: float
     evidence_refs: list[str]
     contribution: str
+    role_activation_reason: str
     requested_next_role: SpecialistRole | None
     next_role: SpecialistRole
+    next_role_activation_reason: str
     reason: str
+    fallback_layer_before: str
+    fallback_layer_after: str
+    fallback_transitioned: bool
     created_at: datetime = Field(default_factory=utc_now)
 
 
@@ -122,6 +134,9 @@ class Run(BaseModel):
     active_roles: list[SpecialistRole]
     current_index: int = 0
     current_role: SpecialistRole
+    current_role_activation_reason: str = (
+        "run started with first configured specialist in rotation"
+    )
     round_number: int = 1
     turn_number: int = 0
     round_passes: list[SpecialistRole] = Field(default_factory=list)
@@ -149,3 +164,37 @@ class RunReport(BaseModel):
     paused_roles: list[SpecialistRole]
     fallback_layer: str
 
+
+class DecisionLedgerEntry(BaseModel):
+    event_id: str = Field(default_factory=lambda: f"E-{uuid4().hex[:10]}")
+    run_id: str
+    turn_number: int
+    round_number: int
+    event_type: DecisionEventType
+    role: SpecialistRole | None = None
+    activated_role: SpecialistRole | None = None
+    reason: str
+    confidence_before: float | None = None
+    confidence_after: float | None = None
+    confidence_delta: float | None = None
+    fallback_from: str | None = None
+    fallback_to: str | None = None
+    created_at: datetime
+
+
+class SkillRecommendationRequest(BaseModel):
+    goal_title: str = Field(min_length=3, max_length=240)
+    success_criteria: list[str] = Field(default_factory=list)
+    constraints: list[str] = Field(default_factory=list)
+    include_roles: list[SpecialistRole] | None = None
+    limit: int = Field(default=5, ge=1, le=5)
+
+
+class SkillRecommendation(BaseModel):
+    role: SpecialistRole
+    activation_score: float
+    expected_utility: float
+    cost_penalty: float
+    latency_penalty: float
+    risk_reduction: float
+    rationale: str

@@ -5,6 +5,8 @@ from collections import Counter, defaultdict
 from fastapi import HTTPException
 
 from app.models import (
+    DecisionEventType,
+    DecisionLedgerEntry,
     Run,
     RunReport,
     RunStartRequest,
@@ -35,7 +37,12 @@ class CircleJunctionScheduler:
         if run.status != RunStatus.ACTIVE:
             raise HTTPException(status_code=409, detail="run is not active")
 
+        fallback_before = self._fallback_layer(run)
+        previous_confidence = (
+            run.turn_history[-1].confidence if run.turn_history else turn.confidence
+        )
         expected_role = run.current_role
+        role_activation_reason = run.current_role_activation_reason
         was_preempted = False
 
         if (
@@ -48,6 +55,7 @@ class CircleJunctionScheduler:
             run.current_index = run.active_roles.index(SpecialistRole.VERIFIER)
             expected_role = SpecialistRole.VERIFIER
             run.current_role = SpecialistRole.VERIFIER
+            role_activation_reason = "priority lane override triggered verifier preemption"
             was_preempted = True
 
         if turn.role != expected_role:
@@ -79,27 +87,37 @@ class CircleJunctionScheduler:
             outcome = TurnOutcome.PRIORITY_PREEMPTED
             reason = "verifier preempted this turn on priority lane"
 
-        next_index, next_role = self._pick_next_role(run, turn)
+        next_index, next_role, next_role_activation_reason = self._pick_next_role(run, turn)
         previous_index = run.current_index
         run.current_index = next_index
         run.current_role = next_role
+        run.current_role_activation_reason = next_role_activation_reason
 
         if self._crossed_round_boundary(previous_index, next_index):
             run.round_number += 1
             run.round_passes = []
 
+        fallback_after = self._fallback_layer_after_turn(run, fallback_before, outcome)
         record = TurnRecord(
             turn_number=run.turn_number,
             round_number=run.round_number,
             role=role,
             outcome=outcome,
             confidence=turn.confidence,
+            confidence_delta_from_previous_turn=round(
+                turn.confidence - previous_confidence, 3
+            ),
             usefulness_score=turn.usefulness_score,
             evidence_refs=turn.evidence_refs,
             contribution=turn.contribution,
+            role_activation_reason=role_activation_reason,
             requested_next_role=turn.requested_next_role,
             next_role=next_role,
+            next_role_activation_reason=next_role_activation_reason,
             reason=reason,
+            fallback_layer_before=fallback_before,
+            fallback_layer_after=fallback_after,
+            fallback_transitioned=fallback_before != fallback_after,
         )
         run.turn_history.append(record)
         run.updated_at = utc_now()
@@ -150,6 +168,71 @@ class CircleJunctionScheduler:
             return "layer_2_verifier_guard"
         return "layer_1_circle_junction"
 
+    def build_decision_ledger(self, run: Run) -> list[DecisionLedgerEntry]:
+        entries: list[DecisionLedgerEntry] = []
+        for record in run.turn_history:
+            entries.append(
+                DecisionLedgerEntry(
+                    run_id=run.run_id,
+                    turn_number=record.turn_number,
+                    round_number=record.round_number,
+                    event_type=DecisionEventType.ROLE_ACTIVATION,
+                    role=record.role,
+                    activated_role=record.role,
+                    reason=record.role_activation_reason,
+                    created_at=record.created_at,
+                )
+            )
+            confidence_before = round(
+                record.confidence - record.confidence_delta_from_previous_turn, 3
+            )
+            entries.append(
+                DecisionLedgerEntry(
+                    run_id=run.run_id,
+                    turn_number=record.turn_number,
+                    round_number=record.round_number,
+                    event_type=DecisionEventType.CONFIDENCE_SHIFT,
+                    role=record.role,
+                    reason="confidence updated after specialist turn",
+                    confidence_before=confidence_before,
+                    confidence_after=record.confidence,
+                    confidence_delta=record.confidence_delta_from_previous_turn,
+                    created_at=record.created_at,
+                )
+            )
+            if record.fallback_transitioned:
+                entries.append(
+                    DecisionLedgerEntry(
+                        run_id=run.run_id,
+                        turn_number=record.turn_number,
+                        round_number=record.round_number,
+                        event_type=DecisionEventType.FALLBACK_TRANSITION,
+                        role=record.role,
+                        reason=(
+                            "fallback layer changed due to verifier intervention"
+                            if record.fallback_layer_after
+                            == "layer_2_verifier_guard"
+                            else "fallback layer changed due to run halt safeguard"
+                        ),
+                        fallback_from=record.fallback_layer_before,
+                        fallback_to=record.fallback_layer_after,
+                        created_at=record.created_at,
+                    )
+                )
+        return entries
+
+    def _fallback_layer_after_turn(
+        self, run: Run, fallback_before: str, outcome: TurnOutcome
+    ) -> str:
+        if run.status == RunStatus.HALTED:
+            return "layer_3_safe_baseline"
+        if (
+            fallback_before == "layer_2_verifier_guard"
+            or outcome == TurnOutcome.PRIORITY_PREEMPTED
+        ):
+            return "layer_2_verifier_guard"
+        return "layer_1_circle_junction"
+
     def _mark_pass(self, run: Run, role: SpecialistRole) -> None:
         if role not in run.round_passes:
             run.round_passes.append(role)
@@ -161,11 +244,17 @@ class CircleJunctionScheduler:
     def _is_role_active(self, run: Run, role: SpecialistRole) -> bool:
         return role in run.active_roles and role not in run.paused_roles
 
-    def _pick_next_role(self, run: Run, turn: TurnInput) -> tuple[int, SpecialistRole]:
+    def _pick_next_role(
+        self, run: Run, turn: TurnInput
+    ) -> tuple[int, SpecialistRole, str]:
         active_count = len([r for r in run.active_roles if self._is_role_active(run, r)])
         if active_count == 0:
             run.status = RunStatus.HALTED
-            return run.current_index, run.current_role
+            return (
+                run.current_index,
+                run.current_role,
+                "no active specialists remain; run halted to safe baseline",
+            )
 
         if (
             turn.requested_next_role
@@ -173,23 +262,39 @@ class CircleJunctionScheduler:
             and turn.requested_next_role != run.current_role
         ):
             requested_index = run.active_roles.index(turn.requested_next_role)
-            return requested_index, turn.requested_next_role
+            return (
+                requested_index,
+                turn.requested_next_role,
+                f"explicit handoff requested by {turn.role.value}",
+            )
 
         if (
             turn.requested_next_role == run.current_role
             and self._same_role_repeat_allowed(run, run.current_role)
         ):
-            return run.current_index, run.current_role
+            return (
+                run.current_index,
+                run.current_role,
+                "repeat turn allowed because all other active specialists passed",
+            )
 
         total_roles = len(run.active_roles)
         for offset in range(1, total_roles + 1):
             idx = (run.current_index + offset) % total_roles
             candidate = run.active_roles[idx]
             if self._is_role_active(run, candidate):
-                return idx, candidate
+                if offset == 1:
+                    reason = "standard round-robin baton advance"
+                else:
+                    reason = "round-robin advance skipped paused specialists"
+                return idx, candidate, reason
 
         run.status = RunStatus.HALTED
-        return run.current_index, run.current_role
+        return (
+            run.current_index,
+            run.current_role,
+            "no eligible specialist found; run halted to safe baseline",
+        )
 
     def _same_role_repeat_allowed(self, run: Run, role: SpecialistRole) -> bool:
         other_active = [
@@ -203,4 +308,3 @@ class CircleJunctionScheduler:
 
     def _crossed_round_boundary(self, previous_index: int, next_index: int) -> bool:
         return next_index <= previous_index
-

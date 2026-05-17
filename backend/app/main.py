@@ -1,19 +1,44 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 
 from app.api_models import HealthResponse
-from app.models import Goal, GoalCreateRequest, Run, RunReport, RunStartRequest, RunStatus, TurnInput
+from app.models import (
+    DecisionLedgerEntry,
+    Goal,
+    GoalCreateRequest,
+    Run,
+    RunReport,
+    SkillRecommendation,
+    SkillRecommendationRequest,
+    RunStartRequest,
+    RunStatus,
+    TurnInput,
+)
 from app.orchestration.langgraph_graph import build_bootstrap_graph
 from app.orchestration.ring_graph import build_turn_graph
 from app.orchestration.scheduler import CircleJunctionScheduler
-from app.store import InMemoryStore
+from app.orchestration.skill_registry import recommend_skills
+from app.settings import load_settings
+from app.store import build_store
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    _store.initialize()
+    try:
+        yield
+    finally:
+        _store.close()
+
 
 app = FastAPI(
     title="Hive Agent Backend",
     version="0.2.0",
     description="Backend API for the Hive Circle multi-agent platform.",
+    lifespan=lifespan,
 )
 
-_store = InMemoryStore()
+_settings = load_settings()
+_store = build_store(_settings)
 _scheduler = CircleJunctionScheduler()
 _bootstrap_graph = build_bootstrap_graph()
 _turn_graph = build_turn_graph(_scheduler)
@@ -83,6 +108,14 @@ def get_run_report(run_id: str) -> RunReport:
     return _scheduler.build_report(run)
 
 
+@app.get("/runs/{run_id}/ledger", response_model=list[DecisionLedgerEntry])
+def get_run_ledger(run_id: str) -> list[DecisionLedgerEntry]:
+    run = _store.get_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="run not found")
+    return _scheduler.build_decision_ledger(run)
+
+
 @app.post("/runs/{run_id}/complete", response_model=Run)
 def complete_run(run_id: str) -> Run:
     run = _store.get_run(run_id)
@@ -90,3 +123,10 @@ def complete_run(run_id: str) -> Run:
         raise HTTPException(status_code=404, detail="run not found")
     run.status = RunStatus.COMPLETED
     return _store.update_run(run)
+
+
+@app.post("/skills/recommendations", response_model=list[SkillRecommendation])
+def get_skill_recommendations(
+    request: SkillRecommendationRequest,
+) -> list[SkillRecommendation]:
+    return recommend_skills(request)

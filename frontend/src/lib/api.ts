@@ -1,4 +1,10 @@
-import { Goal, Run, RunReport, SpecialistRole } from "@/types/hive";
+import {
+  DecisionLedgerEntry,
+  Goal,
+  Run,
+  RunReport,
+  SpecialistRole,
+} from "@/types/hive";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ??
@@ -78,6 +84,13 @@ export function applyTurn(
 
 export function getRunReport(runId: string): Promise<RunReport> {
   return request<RunReport>(`/runs/${runId}/report`, {
+    method: "GET",
+    cache: "no-store",
+  });
+}
+
+export function getDecisionLedger(runId: string): Promise<DecisionLedgerEntry[]> {
+  return request<DecisionLedgerEntry[]>(`/runs/${runId}/ledger`, {
     method: "GET",
     cache: "no-store",
   });

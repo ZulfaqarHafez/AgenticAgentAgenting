@@ -118,6 +118,8 @@ def test_priority_preemption_allows_verifier_interrupt() -> None:
         ),
     )
     assert run.turn_history[-1].outcome == TurnOutcome.PRIORITY_PREEMPTED
+    ledger = scheduler.build_decision_ledger(run)
+    assert any(event.event_type.value == "fallback_transition" for event in ledger)
 
 
 def test_wrong_role_raises_conflict() -> None:

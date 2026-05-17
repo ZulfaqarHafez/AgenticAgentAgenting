@@ -7,6 +7,10 @@ export type SpecialistRole =
   | "executor"
   | "critic"
   | "verifier";
+export type DecisionEventType =
+  | "role_activation"
+  | "fallback_transition"
+  | "confidence_shift";
 
 export interface Goal {
   goal_id: string;
@@ -23,12 +27,18 @@ export interface TurnRecord {
   role: SpecialistRole;
   outcome: string;
   confidence: number;
+  confidence_delta_from_previous_turn: number;
   usefulness_score: number;
   evidence_refs: string[];
   contribution: string;
+  role_activation_reason: string;
   requested_next_role?: SpecialistRole | null;
   next_role: SpecialistRole;
+  next_role_activation_reason: string;
   reason: string;
+  fallback_layer_before: string;
+  fallback_layer_after: string;
+  fallback_transitioned: boolean;
   created_at: string;
 }
 
@@ -58,4 +68,21 @@ export interface RunReport {
   role_avg_usefulness: Record<SpecialistRole, number>;
   paused_roles: SpecialistRole[];
   fallback_layer: string;
+}
+
+export interface DecisionLedgerEntry {
+  event_id: string;
+  run_id: string;
+  turn_number: number;
+  round_number: number;
+  event_type: DecisionEventType;
+  role?: SpecialistRole | null;
+  activated_role?: SpecialistRole | null;
+  reason: string;
+  confidence_before?: number | null;
+  confidence_after?: number | null;
+  confidence_delta?: number | null;
+  fallback_from?: string | null;
+  fallback_to?: string | null;
+  created_at: string;
 }
