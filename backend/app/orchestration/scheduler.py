@@ -397,4 +397,4 @@ class CircleJunctionScheduler:
         return all(candidate in run.round_passes for candidate in other_active)
 
     def _crossed_round_boundary(self, previous_index: int, next_index: int) -> bool:
-        return next_index <= previous_index
+        return next_index < previous_index

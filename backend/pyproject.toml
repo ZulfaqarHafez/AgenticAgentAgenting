@@ -9,6 +9,7 @@ description = "FastAPI backend for the Hive Circle multi-agent system."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+  "anthropic>=0.50.0",
   "fastapi>=0.115.0",
   "pydantic>=2.8.0",
   "uvicorn>=0.30.0",

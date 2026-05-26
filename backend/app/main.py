@@ -197,14 +197,14 @@ def list_runs() -> list[Run]:
 
 
 @app.post("/runs/{run_id}/auto-turn", response_model=Run)
-def auto_turn(run_id: str, request: AutoTurnRequest) -> Run:
+async def auto_turn(run_id: str, request: AutoTurnRequest) -> Run:
     run = _store.get_run(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
     goal = _store.get_goal(run.goal_id)
     if not goal:
         raise HTTPException(status_code=404, detail="goal not found")
-    generated_turn = _specialist_engine.build_turn(goal, run, request)
+    generated_turn = await _specialist_engine.build_turn(goal, run, request)
     updated = _turn_graph.invoke({"run": run, "turn": generated_turn})["run"]
     return _store.update_run(updated)
 
