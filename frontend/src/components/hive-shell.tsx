@@ -220,9 +220,11 @@ export function HiveShell() {
   const [runMode, setRunMode] = useState<RunMode>("balanced");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [inspectorOpen, setInspectorOpen] = useState(true);
   const selectedGoalIdRef = useRef<string | null>(null);
   const selectedRunIdRef = useRef<string | null>(null);
   const freshMissionPinnedRef = useRef(false);
+  const chatLogRef = useRef<HTMLDivElement | null>(null);
   const [activity, setActivity] = useState<ActivityState>({
     phase: "idle",
     title: "Ready",
@@ -242,6 +244,7 @@ export function HiveShell() {
     runtime?.contract_version === "run-start.v2" &&
     runtime?.recommended_roles_supported === true &&
     runtime?.decision_ledger_supported === true;
+
   const messages = useMemo(() => {
     const base = buildMessagesFromRun(run);
     if (!pendingPrompt.trim()) return base;
@@ -252,10 +255,7 @@ export function HiveShell() {
       text: pendingPrompt,
       timestamp: "sending...",
     };
-    return [
-      ...base,
-      pendingMessage,
-    ];
+    return [...base, pendingMessage];
   }, [pendingPrompt, run]);
 
   const ringStyle = useMemo(() => {
@@ -318,9 +318,7 @@ export function HiveShell() {
       }
 
       const runList = await listRuns(goalId);
-      if (selectedGoalIdRef.current !== goalId) {
-        return;
-      }
+      if (selectedGoalIdRef.current !== goalId) return;
       setGoalRuns(runList);
 
       if (runList.length === 0) {
@@ -340,9 +338,7 @@ export function HiveShell() {
 
       if (!chosenRun) return;
       const hydratedRun = await getRun(chosenRun.run_id);
-      if (selectedGoalIdRef.current !== goalId) {
-        return;
-      }
+      if (selectedGoalIdRef.current !== goalId) return;
       await syncRunView(hydratedRun);
     },
     [syncRunView]
@@ -395,6 +391,12 @@ export function HiveShell() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, [refreshRuns, selectedGoalId, updateActivity]);
+
+  useEffect(() => {
+    const node = chatLogRef.current;
+    if (!node) return;
+    node.scrollTop = node.scrollHeight;
+  }, [messages]);
 
   async function ensureGoalAndRun(userInput: string) {
     let resolvedGoal = selectedGoal;
@@ -746,98 +748,17 @@ export function HiveShell() {
     visibleRoles.length,
   ]);
 
-  const runtimePartsById = useMemo(
-    () => Object.fromEntries(runtimeParts.map((part) => [part.id, part])),
-    [runtimeParts]
-  );
-
-  const cockpitSignals = useMemo(
-    () => [
-      {
-        id: "baton",
-        label: "Baton",
-        value: run ? ROLE_LABELS[run.current_role] : "Waiting",
-        detail: run?.current_role_activation_reason ?? "No active handoff yet.",
-        state: (busy ? "running" : run ? "ready" : "idle") as PartRuntimeState,
-      },
-      {
-        id: "router",
-        label: "Router",
-        value:
-          run?.activation_strategy === "recommended_roles"
-            ? "Adaptive"
-            : run?.activation_strategy === "manual_active_roles"
-              ? "Manual"
-              : "Standby",
-        detail: run
-          ? `${run.activation_strategy} across ${visibleRoles.length} specialists.`
-          : "No live run yet.",
-        state: (
-          activity.phase === "starting_run"
-            ? "running"
-            : run
-              ? "ready"
-              : "idle"
-        ) as PartRuntimeState,
-      },
-      {
-        id: "proof",
-        label: "Proof",
-        value: proofGate?.state ?? "blocked",
-        detail: proofGate?.ready_to_complete
-          ? "Completion can be marked safely."
-          : proofGate?.blockers[0] ?? "Proof gate waiting for evidence.",
-        state: (!proofGate ? "idle" : proofGate.ready_to_complete ? "ready" : "blocked") as PartRuntimeState,
-      },
-      {
-        id: "history",
-        label: "Replay",
-        value: selectedRunId ? shortRunLabel(selectedRunId) : "Empty",
-        detail:
-          goalRuns.length > 0
-            ? `${goalRuns.length} saved run${goalRuns.length === 1 ? "" : "s"} ready to inspect.`
-            : "No replayable runs loaded yet.",
-        state: (
-          activity.phase === "loading_history"
-            ? "running"
-            : goalRuns.length > 0
-              ? "ready"
-              : "idle"
-        ) as PartRuntimeState,
-      },
-    ],
-    [activity.phase, busy, goalRuns.length, proofGate, run, selectedRunId, visibleRoles.length]
-  );
-
-  function renderSectionRuntime(partId: RuntimePartRow["id"]) {
-    const part = runtimePartsById[partId];
-    if (!part) return null;
-    return (
-      <span className={`section-runtime section-runtime-${part.state}`}>
-        <span className="section-runtime-dot" />
-        {part.label} {part.state}
-      </span>
-    );
-  }
+  const showEmptyState = !selectedGoal && messages.length <= 1;
 
   return (
-    <div className="hive-page">
-      <div className="hive-gradient" />
-
-      <header className="hive-header">
-        <div className="header-copy">
-          <div className="header-orbit">
-            <Image src="/art/orbit-map.svg" alt="" width={320} height={188} priority />
-          </div>
-          <p className="kicker">Agentic Agent</p>
+    <div className={`hive-app ${inspectorOpen ? "inspector-open" : "inspector-closed"}`}>
+      <header className="topbar">
+        <div className="brand">
           <h1>Hive Circle Console</h1>
-          <p className="header-subtitle">
-            A mission-control shell for adaptive specialists, visible fallback lanes,
-            proof-gated completion, and persistent replay.
-          </p>
+          <span className="brand-sub">Adaptive multi-agent orchestration</span>
         </div>
 
-        <div className="header-badges">
+        <div className="topbar-actions">
           <div
             className={`status-pill ${
               runtimeOnline ? "status-pill-live" : "status-pill-offline"
@@ -847,150 +768,135 @@ export function HiveShell() {
             <strong>{runtimeOnline ? "Backend live" : "Backend offline"}</strong>
             <small>Checked {runtimeCheckedAt}</small>
           </div>
-          <div
-            className={`status-pill ${busy ? "status-pill-working" : "status-pill-neutral"}`}
-          >
-            <span className="status-dot" />
-            <strong>{activity.title}</strong>
-            <small>{activity.updatedAt}</small>
-          </div>
           <div className="api-pill">
             <span>API</span>
             <code>{getApiBase()}</code>
           </div>
+          <button
+            type="button"
+            className="inspector-toggle"
+            onClick={() => setInspectorOpen((v) => !v)}
+            aria-pressed={inspectorOpen}
+            title={inspectorOpen ? "Hide inspector" : "Show inspector"}
+          >
+            {inspectorOpen ? "Hide Inspector" : "Show Inspector"}
+          </button>
         </div>
       </header>
 
-      <div className="hive-grid">
-        <section className="chat-panel">
-          <div className="mission-board">
-            <div className="mission-copy">
-              <p className="mission-eyebrow">Mission Control</p>
-              <div className="mission-title-row">
+      <main className="workspace">
+        <section className="chat-column">
+          <div className="context-strip">
+            <div className="context-strip-top">
+              <div className="context-strip-title">
+                <p className="mission-eyebrow">Mission Control</p>
                 <h2>{selectedGoal?.title ?? "No mission active yet"}</h2>
-                <div className="mission-controls">
-                  <button
-                    type="button"
-                    className="mission-action mission-action-quiet"
-                    onClick={handleNewMission}
-                    disabled={busy}
-                  >
-                    New Mission
-                  </button>
-                  <select
-                    className="goal-select"
-                    value={selectedGoalId ?? ""}
-                    onChange={(event) => {
-                      void handleGoalChange(event.target.value || null);
-                    }}
-                    disabled={busy}
-                  >
-                    <option value="">Latest mission</option>
-                    {goals.map((goal) => (
-                      <option key={goal.goal_id} value={goal.goal_id}>
-                        {goal.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
-              <p className="mission-summary">
-                {selectedGoal
-                  ? selectedGoal.success_criteria[0]
-                  : "Start with a concrete goal and the circle will turn it into a live run."}
-              </p>
-
-              <div className="signal-strip">
-                {cockpitSignals.map((signal) => (
-                  <article key={signal.id} className="signal-card">
-                    <div className="signal-card-header">
-                      <span>{signal.label}</span>
-                      <span className={`state-chip state-chip-${signal.state}`}>
-                        {signal.state}
-                      </span>
-                    </div>
-                    <strong>{signal.value}</strong>
-                    <p>{signal.detail}</p>
-                  </article>
-                ))}
-              </div>
-
-              <div className="mission-facts">
-                <span className="fact-pill">
-                  Mode{" "}
-                  <strong>{activationMode === "auto" ? "Auto Skills" : "Manual Circle"}</strong>
-                </span>
-                <span className="fact-pill">
-                  Depth <strong>{formatRunModeLabel(run?.run_mode ?? runMode)}</strong>
-                </span>
-                <span className="fact-pill">
-                  Status <strong>{run?.status ?? "idle"}</strong>
-                </span>
-                <span className="fact-pill">
-                  Run <strong>{selectedRunId ? shortRunLabel(selectedRunId) : "none"}</strong>
-                </span>
-                <span className="fact-pill">
-                  Turns <strong>{run?.turn_number ?? 0}</strong>
-                </span>
-                <span className="fact-pill">
-                  Evidence <strong>{latestEvidenceCount}</strong>
-                </span>
+              <div className="context-strip-controls">
+                <select
+                  className="goal-select"
+                  value={selectedGoalId ?? ""}
+                  onChange={(event) => {
+                    void handleGoalChange(event.target.value || null);
+                  }}
+                  disabled={busy}
+                  aria-label="Switch mission"
+                >
+                  <option value="">Latest mission</option>
+                  {goals.map((goal) => (
+                    <option key={goal.goal_id} value={goal.goal_id}>
+                      {goal.title}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="mission-action mission-action-quiet"
+                  onClick={handleNewMission}
+                  disabled={busy}
+                >
+                  New Mission
+                </button>
               </div>
             </div>
 
-            <div className="mission-side">
-              <div className="mission-presence">
-                <Image
-                  src={run ? ROLE_ARTWORK[run.current_role] : "/agents/hive.svg"}
-                  alt=""
-                  width={52}
-                  height={52}
-                />
-                <div>
-                  <p className="mission-presence-label">
-                    {busy ? "Currently working" : "Current baton holder"}
-                  </p>
-                  <strong>{run ? ROLE_LABELS[run.current_role] : "Hive Circle"}</strong>
-                  <span>{activity.detail}</span>
-                </div>
-              </div>
+            <div className="mission-facts">
+              <span className="fact-pill">
+                Mode <strong>{activationMode === "auto" ? "Auto Skills" : "Manual Circle"}</strong>
+              </span>
+              <span className="fact-pill">
+                Depth <strong>{formatRunModeLabel(run?.run_mode ?? runMode)}</strong>
+              </span>
+              <span className="fact-pill">
+                Status <strong>{run?.status ?? "idle"}</strong>
+              </span>
+              <span className="fact-pill">
+                Run <strong>{selectedRunId ? shortRunLabel(selectedRunId) : "none"}</strong>
+              </span>
+              <span className="fact-pill">
+                Turns <strong>{run?.turn_number ?? 0}</strong>
+              </span>
+              <span className="fact-pill">
+                Evidence <strong>{latestEvidenceCount}</strong>
+              </span>
+            </div>
 
-              <div className="cast-row">
+            <div className="current-step">
+              <Image
+                className="current-step-avatar"
+                src={run ? ROLE_ARTWORK[run.current_role] : "/agents/hive.svg"}
+                alt=""
+                width={36}
+                height={36}
+              />
+              <div className="current-step-body">
+                <span className="current-step-label">
+                  {busy ? "Currently working" : "Baton holder"}
+                </span>
+                <strong>{run ? ROLE_LABELS[run.current_role] : "Hive Circle"}</strong>
+                <p>{activity.detail}</p>
+              </div>
+              <div className="current-step-cast">
                 {visibleRoles.map((role) => (
-                  <div
+                  <span
                     key={role}
                     className={`cast-pill ${run?.current_role === role ? "cast-pill-active" : ""}`}
+                    title={ROLE_LABELS[role]}
                   >
-                    <Image src={ROLE_ARTWORK[role]} alt="" width={22} height={22} />
+                    <Image src={ROLE_ARTWORK[role]} alt="" width={18} height={18} />
                     <span>{ROLE_LABELS[role]}</span>
-                  </div>
+                  </span>
                 ))}
-              </div>
-
-              <div className="mission-illustration">
-                <Image src="/art/mission-weave.svg" alt="" width={280} height={164} />
               </div>
             </div>
           </div>
 
-          <div className="chat-log">
-            {!selectedGoal && messages.length <= 1 ? (
-              <div className="starter-grid">
-                {STARTER_PROMPTS.map((starter) => (
-                  <button
-                    key={starter.title}
-                    type="button"
-                    className="starter-card"
-                    onClick={() => {
-                      setDraft(starter.prompt);
-                    }}
-                    disabled={busy}
-                  >
-                    <span className="starter-kicker">{starter.title}</span>
-                    <strong>{starter.detail}</strong>
-                    <span>{starter.prompt}</span>
-                  </button>
-                ))}
+          <div className="chat-log" ref={chatLogRef}>
+            {showEmptyState ? (
+              <div className="empty-state">
+                <p className="empty-state-eyebrow">Start a mission</p>
+                <h3>Describe a goal or pick a starter</h3>
+                <p className="empty-state-sub">
+                  The circle creates a goal, picks specialists, and shows the reasoning behind each
+                  handoff.
+                </p>
+                <div className="starter-grid">
+                  {STARTER_PROMPTS.map((starter) => (
+                    <button
+                      key={starter.title}
+                      type="button"
+                      className="starter-card"
+                      onClick={() => {
+                        setDraft(starter.prompt);
+                      }}
+                      disabled={busy}
+                    >
+                      <span className="starter-kicker">{starter.title}</span>
+                      <strong>{starter.detail}</strong>
+                      <span>{starter.prompt}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : null}
 
@@ -998,10 +904,10 @@ export function HiveShell() {
               <article key={message.id} className={`bubble bubble-${message.speaker}`}>
                 <div className="bubble-meta">
                   <span className="bubble-agent-id">
-                    <Image src={speakerArtwork(message)} alt="" width={24} height={24} />
+                    <Image src={speakerArtwork(message)} alt="" width={22} height={22} />
                     <strong>{message.label}</strong>
                   </span>
-                  <span>{message.timestamp}</span>
+                  <span className="bubble-time">{message.timestamp}</span>
                 </div>
                 {message.speaker === "agent" ? (
                   <div className="bubble-runtime">
@@ -1012,7 +918,7 @@ export function HiveShell() {
                       {formatPercent(message.confidence ?? 0)}
                     </span>
                     <span className="mini-badge mini-badge-neutral">
-                      {(message.evidenceRefs?.length ?? 0)} evidence
+                      {message.evidenceRefs?.length ?? 0} evidence
                     </span>
                     {message.nextRole ? (
                       <span className="mini-badge mini-badge-warn">
@@ -1023,16 +929,16 @@ export function HiveShell() {
                 ) : null}
                 <p>{message.text}</p>
                 {message.speaker === "agent" && message.specialistOutput ? (
-                  <div className="bubble-artifact">
-                    <div className="bubble-artifact-header">
-                      <div>
+                  <details className="bubble-artifact">
+                    <summary>
+                      <span>
                         <strong>{message.specialistOutput.prompt_title}</strong>
-                        <span>{message.specialistOutput.provider}</span>
-                      </div>
+                        <em>{message.specialistOutput.provider}</em>
+                      </span>
                       <span className="mini-badge mini-badge-neutral">
                         {message.outcome?.replaceAll("_", " ") ?? "contributed"}
                       </span>
-                    </div>
+                    </summary>
                     <div className="bubble-artifact-grid">
                       <div>
                         <h3>Checklist</h3>
@@ -1051,74 +957,104 @@ export function HiveShell() {
                         </ul>
                       </div>
                     </div>
-                  </div>
+                  </details>
                 ) : null}
               </article>
             ))}
           </div>
 
           <form className="composer" onSubmit={handleSubmit}>
-            <div className="composer-header">
-              <div>
-                <p className="composer-kicker">Compose</p>
-                <strong>Send the next mission update into the circle</strong>
-                <span className="composer-subcopy">
-                  Start a fresh circle, steer the mode, or pressure-test the live baton holder.
-                </span>
-              </div>
-              <div className="mode-row">
-                <button
-                  type="button"
-                  className={activationMode === "auto" ? "mode-active" : ""}
-                  onClick={() => setActivationMode("auto")}
-                  disabled={busy}
-                >
-                  Auto Skills
-                </button>
-                <button
-                  type="button"
-                  className={activationMode === "manual" ? "mode-active" : ""}
-                  onClick={() => setActivationMode("manual")}
-                  disabled={busy}
-                >
-                  Manual Circle
-                </button>
-              </div>
-            </div>
-
-            <div className="mode-row mode-row-secondary">
+            <div className="composer-input">
+              <textarea
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                    event.preventDefault();
+                    void sendPrompt(draft);
+                  }
+                }}
+                placeholder="Describe the goal, ask for the next turn, or pressure-test fallback behavior..."
+                rows={3}
+                aria-label="Mission prompt"
+              />
               <button
-                type="button"
-                className={runMode === "lite" ? "mode-active" : ""}
-                onClick={() => setRunMode("lite")}
-                disabled={busy}
+                type="submit"
+                className="send-btn"
+                disabled={busy || draft.trim().length === 0}
               >
-                Lite
-              </button>
-              <button
-                type="button"
-                className={runMode === "balanced" ? "mode-active" : ""}
-                onClick={() => setRunMode("balanced")}
-                disabled={busy}
-              >
-                Balanced
-              </button>
-              <button
-                type="button"
-                className={runMode === "power" ? "mode-active" : ""}
-                onClick={() => setRunMode("power")}
-                disabled={busy}
-              >
-                Power
+                {busy ? "Processing..." : "Send to Hive"}
               </button>
             </div>
 
-            <textarea
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              placeholder="Describe the goal, ask for the next turn, or pressure-test the fallback behavior..."
-              rows={4}
-            />
+            <div className="composer-controls">
+              <div className="composer-mode-group">
+                <span className="mode-label">Mode</span>
+                <div className="mode-row">
+                  <button
+                    type="button"
+                    className={activationMode === "auto" ? "mode-active" : ""}
+                    onClick={() => setActivationMode("auto")}
+                    disabled={busy}
+                  >
+                    Auto Skills
+                  </button>
+                  <button
+                    type="button"
+                    className={activationMode === "manual" ? "mode-active" : ""}
+                    onClick={() => setActivationMode("manual")}
+                    disabled={busy}
+                  >
+                    Manual Circle
+                  </button>
+                </div>
+              </div>
+              <div className="composer-mode-group">
+                <span className="mode-label">Depth</span>
+                <div className="mode-row">
+                  <button
+                    type="button"
+                    className={runMode === "lite" ? "mode-active" : ""}
+                    onClick={() => setRunMode("lite")}
+                    disabled={busy}
+                  >
+                    Lite
+                  </button>
+                  <button
+                    type="button"
+                    className={runMode === "balanced" ? "mode-active" : ""}
+                    onClick={() => setRunMode("balanced")}
+                    disabled={busy}
+                  >
+                    Balanced
+                  </button>
+                  <button
+                    type="button"
+                    className={runMode === "power" ? "mode-active" : ""}
+                    onClick={() => setRunMode("power")}
+                    disabled={busy}
+                  >
+                    Power
+                  </button>
+                </div>
+              </div>
+              <div className="composer-secondary">
+                <button type="button" disabled={busy} onClick={() => void handleRefreshPanels()}>
+                  Refresh View
+                </button>
+                <button type="button" disabled={busy || !run} onClick={handlePassTurn}>
+                  Pass Turn
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || !run || !proofGate?.ready_to_complete}
+                  onClick={handleCompleteRun}
+                >
+                  Complete Run
+                </button>
+              </div>
+              <span className="composer-hint">Ctrl/⌘ + Enter to send</span>
+            </div>
 
             <div className="composer-status">
               <span
@@ -1130,29 +1066,8 @@ export function HiveShell() {
                       : "activity-pulse-offline"
                 }`}
               />
-              <div>
-                <strong>{activity.title}</strong>
-                <span>{activity.detail}</span>
-              </div>
-            </div>
-
-            <div className="composer-row">
-              <button type="submit" disabled={busy || draft.trim().length === 0}>
-                {busy ? "Processing..." : "Send to Hive"}
-              </button>
-              <button type="button" disabled={busy} onClick={() => void handleRefreshPanels()}>
-                Refresh View
-              </button>
-              <button type="button" disabled={busy || !run} onClick={handlePassTurn}>
-                Pass Turn
-              </button>
-              <button
-                type="button"
-                disabled={busy || !run || !proofGate?.ready_to_complete}
-                onClick={handleCompleteRun}
-              >
-                Complete Run
-              </button>
+              <strong>{activity.title}</strong>
+              <span>{activity.detail}</span>
             </div>
           </form>
 
@@ -1164,209 +1079,191 @@ export function HiveShell() {
           ) : null}
         </section>
 
-        <aside className="artifact-panel">
-          <article className="artifact-card">
-            <div className="artifact-card-header">
-              <div className="card-title-block">
-                <Image className="card-mark" src="/art/runtime-signal.svg" alt="" width={34} height={34} />
+        <aside className="inspector" aria-label="Run inspector">
+          <div className="inspector-section">
+            <p className="inspector-section-label">Mission</p>
+
+            <article className="artifact-card">
+              <div className="artifact-card-header">
                 <div>
-                  <h2>Component Runtime</h2>
-                  <p className="artifact-caption">
-                    Live state for each subsystem so you can see what is actively running.
-                  </p>
+                  <h2>Goal Card</h2>
+                  <p className="artifact-caption">Active mission and completion posture.</p>
                 </div>
-              </div>
-            </div>
-
-            <div className="runtime-part-list">
-              {runtimeParts.map((part) => (
-                <div key={part.id} className="runtime-part">
-                  <div className="runtime-part-header">
-                    <strong>{part.label}</strong>
-                    <span className={`state-chip state-chip-${part.state}`}>{part.state}</span>
-                  </div>
-                  <p>{part.detail}</p>
-                  <small>{part.stamp}</small>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article className="artifact-card">
-            <div className="artifact-card-header">
-              <div className="card-title-block">
-                <Image className="card-mark" src="/art/runtime-signal.svg" alt="" width={34} height={34} />
-                <div>
-                  <h2>Runtime</h2>
-                  <p className="artifact-caption">
-                    Live health, contract support, and execution state.
-                  </p>
-                </div>
-              </div>
-              <span
-                className={`mini-badge ${
-                  runtimeContractHealthy ? "mini-badge-good" : "mini-badge-warn"
-                }`}
-              >
-                {runtimeContractHealthy ? "Current contract" : "Legacy contract"}
-              </span>
-            </div>
-
-            <div className="runtime-grid">
-              <p>
-                <span>Backend</span>
-                <strong className={runtimeOnline ? "runtime-live" : "runtime-down"}>
-                  {runtimeOnline ? "Online" : "Offline"}
-                </strong>
-              </p>
-              <p>
-                <span>Checked</span>
-                <strong>{runtimeCheckedAt}</strong>
-              </p>
-              <p>
-                <span>API</span>
-                <strong>{runtime?.api_version ?? "n/a"}</strong>
-              </p>
-              <p>
-                <span>Contract</span>
-                <strong>{runtime?.contract_version ?? "legacy"}</strong>
-              </p>
-              <p>
-                <span>Store</span>
-                <strong>{runtime?.store_backend ?? "n/a"}</strong>
-              </p>
-              <p>
-                <span>Uptime</span>
-                <strong>{formatUptime(runtime?.uptime_seconds)}</strong>
-              </p>
-              <p>
-                <span>Total Runs</span>
-                <strong>{runtime?.total_runs ?? 0}</strong>
-              </p>
-              <p>
-                <span>Active Runs</span>
-                <strong>{runtime?.active_runs ?? 0}</strong>
-              </p>
-            </div>
-          </article>
-
-          <article className="artifact-card">
-            <div className="artifact-card-header">
-              <div>
-                <h2>Goal Card</h2>
-                <p className="artifact-caption">
-                  The active mission, strategy, and completion posture.
-                </p>
-              </div>
-              <div className="card-runtime-stack">
-                {renderSectionRuntime("goal-engine")}
                 {selectedGoal ? (
                   <span className="mini-badge mini-badge-neutral">{selectedGoal.priority}</span>
                 ) : null}
               </div>
-            </div>
+              {selectedGoal ? (
+                <>
+                  <p className="goal-title">{selectedGoal.title}</p>
+                  <p className="muted">
+                    Strategy: <strong>{run?.activation_strategy ?? "not started"}</strong>
+                  </p>
+                  <p className="muted">
+                    Run mode: <strong>{formatRunModeLabel(run?.run_mode ?? runMode)}</strong>
+                  </p>
+                  <p className="muted">
+                    Proof gate: <strong>{proofGate?.state ?? "blocked"}</strong>
+                  </p>
+                  <ul>
+                    {selectedGoal.success_criteria.map((criterion) => (
+                      <li key={criterion}>{criterion}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p className="muted">No mission yet. Choose a starter or write your own.</p>
+              )}
+            </article>
 
-            {selectedGoal ? (
-              <>
-                <p className="goal-title">{selectedGoal.title}</p>
-                <p className="muted">
-                  Strategy: <strong>{run?.activation_strategy ?? "not started"}</strong>
-                </p>
-                <p className="muted">
-                  Run mode: <strong>{formatRunModeLabel(run?.run_mode ?? runMode)}</strong>
-                </p>
-                <p className="muted">
-                  Proof gate: <strong>{proofGate?.state ?? "blocked"}</strong>
-                </p>
-                <ul>
-                  {selectedGoal.success_criteria.map((criterion) => (
-                    <li key={criterion}>{criterion}</li>
-                  ))}
-                </ul>
-              </>
-            ) : (
-              <p className="muted">No mission yet. Choose a starter prompt or write your own.</p>
-            )}
-          </article>
-
-          <article className="artifact-card">
-            <div className="artifact-card-header">
-              <div>
-                <h2>Ring Radar</h2>
-                <p className="artifact-caption">
-                  Circle rotation, baton holder, and role recommendations.
-                </p>
-              </div>
-              {renderSectionRuntime("skill-router")}
-            </div>
-
-            <div className="ring-wrap">
-              <div className="ring-backdrop">
-                <Image src="/art/baton-arc.svg" alt="" width={220} height={220} />
-              </div>
-              <div className={`ring ${busy ? "ring-live" : ""}`} style={{ backgroundImage: ringStyle }}>
-                <div className="ring-core">
-                  <Image
-                    src={run ? ROLE_ARTWORK[run.current_role] : "/agents/hive.svg"}
-                    alt=""
-                    width={36}
-                    height={36}
-                  />
-                  <span>Next</span>
-                  <strong>{run ? ROLE_LABELS[run.current_role] : "None"}</strong>
+            <article className="artifact-card">
+              <div className="artifact-card-header">
+                <div>
+                  <h2>Component Runtime</h2>
+                  <p className="artifact-caption">Live state for each subsystem.</p>
                 </div>
               </div>
-            </div>
-
-            {run?.current_role_activation_reason ? (
-              <p className="muted">
-                Why now: <strong>{run.current_role_activation_reason}</strong>
-              </p>
-            ) : null}
-
-            <ul className="role-list">
-              {visibleRoles.map((role) => (
-                <li key={role}>
-                  <Image
-                    className="role-avatar"
-                    src={ROLE_ARTWORK[role]}
-                    alt=""
-                    width={24}
-                    height={24}
-                  />
-                  <span className="swatch" style={{ backgroundColor: RING_COLORS[role] }} />
-                  <span>{ROLE_LABELS[role]}</span>
-                  {run?.paused_roles.includes(role) ? <em>Paused</em> : null}
-                  {run?.current_role === role ? <strong>Current</strong> : null}
-                </li>
-              ))}
-            </ul>
-
-            {topRecommendations.length > 0 ? (
-              <div className="recommendation-list">
-                {topRecommendations.map((recommendation) => (
-                  <div key={recommendation.role} className="recommendation-item">
-                    <span>{ROLE_LABELS[recommendation.role]}</span>
-                    <strong>{recommendation.activation_score.toFixed(2)}</strong>
+              <div className="runtime-part-list">
+                {runtimeParts.map((part) => (
+                  <div key={part.id} className="runtime-part">
+                    <div className="runtime-part-header">
+                      <strong>{part.label}</strong>
+                      <span className={`state-chip state-chip-${part.state}`}>{part.state}</span>
+                    </div>
+                    <p>{part.detail}</p>
+                    <small>{part.stamp}</small>
                   </div>
                 ))}
               </div>
-            ) : null}
-          </article>
+            </article>
 
-          <article className="artifact-card">
-            <div className="artifact-card-header">
-              <div className="card-title-block">
-                <Image className="card-mark" src="/art/proof-seal.svg" alt="" width={34} height={34} />
+            <article className="artifact-card">
+              <div className="artifact-card-header">
+                <div>
+                  <h2>Runtime</h2>
+                  <p className="artifact-caption">Backend health and contract.</p>
+                </div>
+                <span
+                  className={`mini-badge ${
+                    runtimeContractHealthy ? "mini-badge-good" : "mini-badge-warn"
+                  }`}
+                >
+                  {runtimeContractHealthy ? "Current contract" : "Legacy contract"}
+                </span>
+              </div>
+              <div className="runtime-grid">
+                <p>
+                  <span>Backend</span>
+                  <strong className={runtimeOnline ? "runtime-live" : "runtime-down"}>
+                    {runtimeOnline ? "Online" : "Offline"}
+                  </strong>
+                </p>
+                <p>
+                  <span>Checked</span>
+                  <strong>{runtimeCheckedAt}</strong>
+                </p>
+                <p>
+                  <span>API</span>
+                  <strong>{runtime?.api_version ?? "n/a"}</strong>
+                </p>
+                <p>
+                  <span>Contract</span>
+                  <strong>{runtime?.contract_version ?? "legacy"}</strong>
+                </p>
+                <p>
+                  <span>Store</span>
+                  <strong>{runtime?.store_backend ?? "n/a"}</strong>
+                </p>
+                <p>
+                  <span>Uptime</span>
+                  <strong>{formatUptime(runtime?.uptime_seconds)}</strong>
+                </p>
+                <p>
+                  <span>Total Runs</span>
+                  <strong>{runtime?.total_runs ?? 0}</strong>
+                </p>
+                <p>
+                  <span>Active Runs</span>
+                  <strong>{runtime?.active_runs ?? 0}</strong>
+                </p>
+              </div>
+            </article>
+          </div>
+
+          <div className="inspector-section">
+            <p className="inspector-section-label">Circle</p>
+
+            <article className="artifact-card">
+              <div className="artifact-card-header">
+                <div>
+                  <h2>Ring Radar</h2>
+                  <p className="artifact-caption">Baton, rotation, and recommendations.</p>
+                </div>
+              </div>
+
+              <div className="ring-wrap">
+                <div className={`ring ${busy ? "ring-live" : ""}`} style={{ backgroundImage: ringStyle }}>
+                  <div className="ring-core">
+                    <Image
+                      src={run ? ROLE_ARTWORK[run.current_role] : "/agents/hive.svg"}
+                      alt=""
+                      width={32}
+                      height={32}
+                    />
+                    <span>Next</span>
+                    <strong>{run ? ROLE_LABELS[run.current_role] : "None"}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {run?.current_role_activation_reason ? (
+                <p className="muted">
+                  Why now: <strong>{run.current_role_activation_reason}</strong>
+                </p>
+              ) : null}
+
+              <ul className="role-list">
+                {visibleRoles.map((role) => (
+                  <li key={role}>
+                    <Image
+                      className="role-avatar"
+                      src={ROLE_ARTWORK[role]}
+                      alt=""
+                      width={22}
+                      height={22}
+                    />
+                    <span className="swatch" style={{ backgroundColor: RING_COLORS[role] }} />
+                    <span>{ROLE_LABELS[role]}</span>
+                    {run?.paused_roles.includes(role) ? <em>Paused</em> : null}
+                    {run?.current_role === role ? <strong>Current</strong> : null}
+                  </li>
+                ))}
+              </ul>
+
+              {topRecommendations.length > 0 ? (
+                <div className="recommendation-list">
+                  {topRecommendations.map((recommendation) => (
+                    <div key={recommendation.role} className="recommendation-item">
+                      <span>{ROLE_LABELS[recommendation.role]}</span>
+                      <strong>{recommendation.activation_score.toFixed(2)}</strong>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </article>
+          </div>
+
+          <div className="inspector-section">
+            <p className="inspector-section-label">Proof</p>
+
+            <article className="artifact-card">
+              <div className="artifact-card-header">
                 <div>
                   <h2>Proof Gate</h2>
                   <p className="artifact-caption">
-                    Completion only unlocks after enough turns, evidence, confidence, and verifier review.
+                    Completion unlocks once turns, evidence, confidence, and verifier are satisfied.
                   </p>
                 </div>
-              </div>
-              <div className="card-runtime-stack">
-                {renderSectionRuntime("proof-gate")}
                 <span
                   className={`mini-badge ${
                     proofGate?.ready_to_complete ? "mini-badge-good" : "mini-badge-warn"
@@ -1375,161 +1272,198 @@ export function HiveShell() {
                   {proofGate?.state ?? "blocked"}
                 </span>
               </div>
-            </div>
 
-            {proofGate ? (
-              <>
-                <div className="proof-grid">
+              {proofGate ? (
+                <>
+                  <div className="proof-grid">
+                    <p>
+                      <span>Turns</span>
+                      <strong>
+                        {proofGate.turns_observed}/{proofGate.min_turns_required}
+                      </strong>
+                    </p>
+                    <p>
+                      <span>Evidence</span>
+                      <strong>
+                        {proofGate.evidence_refs_observed}/{proofGate.evidence_refs_required}
+                      </strong>
+                    </p>
+                    <p>
+                      <span>Verifier</span>
+                      <strong>{proofGate.verifier_turn_observed ? "Done" : "Waiting"}</strong>
+                    </p>
+                    <p>
+                      <span>Avg Confidence</span>
+                      <strong>
+                        {proofGate.observed_average_confidence.toFixed(2)}/
+                        {proofGate.minimum_average_confidence.toFixed(2)}
+                      </strong>
+                    </p>
+                  </div>
+
+                  <div className="proof-section">
+                    <strong>Cleared checks</strong>
+                    <ul className="proof-list proof-list-good">
+                      {proofGate.cleared_checks.length > 0 ? (
+                        proofGate.cleared_checks.map((item) => <li key={item}>{item}</li>)
+                      ) : (
+                        <li>No checks cleared yet.</li>
+                      )}
+                    </ul>
+                  </div>
+
+                  <div className="proof-section">
+                    <strong>Blockers</strong>
+                    <ul className="proof-list">
+                      {proofGate.blockers.length > 0 ? (
+                        proofGate.blockers.map((item) => <li key={item}>{item}</li>)
+                      ) : (
+                        <li>None. Completion is unlocked.</li>
+                      )}
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <p className="muted">Proof gate status appears after a run is active.</p>
+              )}
+            </article>
+
+            <article className="artifact-card">
+              <div className="artifact-card-header">
+                <div>
+                  <h2>Run Report</h2>
+                  <p className="artifact-caption">Compact readout of the active run.</p>
+                </div>
+              </div>
+
+              {report ? (
+                <div className="report-grid">
+                  <p>
+                    <span>Status</span>
+                    <strong>{report.status}</strong>
+                  </p>
+                  <p>
+                    <span>Rounds</span>
+                    <strong>{report.rounds}</strong>
+                  </p>
                   <p>
                     <span>Turns</span>
-                    <strong>
-                      {proofGate.turns_observed}/{proofGate.min_turns_required}
-                    </strong>
+                    <strong>{report.turns}</strong>
                   </p>
                   <p>
-                    <span>Evidence</span>
-                    <strong>
-                      {proofGate.evidence_refs_observed}/{proofGate.evidence_refs_required}
-                    </strong>
+                    <span>Fallback</span>
+                    <strong>{report.fallback_layer}</strong>
                   </p>
                   <p>
-                    <span>Verifier</span>
-                    <strong>{proofGate.verifier_turn_observed ? "Done" : "Waiting"}</strong>
+                    <span>Last confidence</span>
+                    <strong>{latestTurn ? formatPercent(latestTurn.confidence) : "n/a"}</strong>
                   </p>
                   <p>
-                    <span>Avg Confidence</span>
-                    <strong>
-                      {proofGate.observed_average_confidence.toFixed(2)}/
-                      {proofGate.minimum_average_confidence.toFixed(2)}
-                    </strong>
+                    <span>Proof gate</span>
+                    <strong>{report.proof_gate_status.state}</strong>
                   </p>
+                  {run?.activation_recommendations?.[0] ? (
+                    <p>
+                      <span>Top Skill</span>
+                      <strong>
+                        {ROLE_LABELS[run.activation_recommendations[0].role]} (
+                        {run.activation_recommendations[0].activation_score.toFixed(2)})
+                      </strong>
+                    </p>
+                  ) : null}
                 </div>
+              ) : (
+                <p className="muted">Run report will appear after the first turn.</p>
+              )}
+            </article>
+          </div>
 
-                <div className="proof-section">
-                  <strong>Cleared checks</strong>
-                  <ul className="proof-list proof-list-good">
-                    {proofGate.cleared_checks.length > 0 ? (
-                      proofGate.cleared_checks.map((item) => <li key={item}>{item}</li>)
-                    ) : (
-                      <li>No checks cleared yet.</li>
-                    )}
-                  </ul>
+          <div className="inspector-section">
+            <p className="inspector-section-label">History</p>
+
+            <article className="artifact-card">
+              <div className="artifact-card-header">
+                <div>
+                  <h2>Decision Ledger</h2>
+                  <p className="artifact-caption">Recent activation, confidence, and fallback events.</p>
                 </div>
-
-                <div className="proof-section">
-                  <strong>Blockers</strong>
-                  <ul className="proof-list">
-                    {proofGate.blockers.length > 0 ? (
-                      proofGate.blockers.map((item) => <li key={item}>{item}</li>)
-                    ) : (
-                      <li>None. Completion is unlocked.</li>
-                    )}
-                  </ul>
-                </div>
-              </>
-            ) : (
-              <p className="muted">Proof gate status appears after a run is active.</p>
-            )}
-          </article>
-
-          <article className="artifact-card">
-            <div className="artifact-card-header">
-              <div>
-                <h2>Decision Ledger</h2>
-                <p className="artifact-caption">
-                  The most recent activation, confidence, and fallback events.
-                </p>
-              </div>
-              <div className="card-runtime-stack">
-                {renderSectionRuntime("specialist-engine")}
                 <span className="mini-badge mini-badge-neutral">{ledger.length} events</span>
               </div>
-            </div>
 
-            {ledger.length > 0 ? (
-              <div className="ledger-list">
-                {ledger
-                  .slice(-8)
-                  .reverse()
-                  .map((entry) => (
-                    <div key={entry.event_id} className="ledger-item">
-                      <p className="ledger-meta">
-                        <span>T{entry.turn_number}</span>
-                        <strong>{entry.event_type.replaceAll("_", " ")}</strong>
-                      </p>
-                      <p className="ledger-reason">{entry.reason}</p>
-                      {typeof entry.confidence_delta === "number" ? (
-                        <p className="ledger-supplement">
-                          Confidence {entry.confidence_before?.toFixed(2)} -&gt;{" "}
-                          {entry.confidence_after?.toFixed(2)} (
-                          {entry.confidence_delta >= 0 ? "+" : ""}
-                          {entry.confidence_delta.toFixed(2)})
+              {ledger.length > 0 ? (
+                <div className="ledger-list">
+                  {ledger
+                    .slice(-8)
+                    .reverse()
+                    .map((entry) => (
+                      <div key={entry.event_id} className="ledger-item">
+                        <p className="ledger-meta">
+                          <span>T{entry.turn_number}</span>
+                          <strong>{entry.event_type.replaceAll("_", " ")}</strong>
                         </p>
-                      ) : null}
-                      {entry.fallback_from && entry.fallback_to ? (
-                        <p className="ledger-supplement">
-                          Fallback {entry.fallback_from} -&gt; {entry.fallback_to}
-                        </p>
-                      ) : null}
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <p className="muted">Decision events appear after the first processed turn.</p>
-            )}
-          </article>
+                        <p className="ledger-reason">{entry.reason}</p>
+                        {typeof entry.confidence_delta === "number" ? (
+                          <p className="ledger-supplement">
+                            Confidence {entry.confidence_before?.toFixed(2)} -&gt;{" "}
+                            {entry.confidence_after?.toFixed(2)} (
+                            {entry.confidence_delta >= 0 ? "+" : ""}
+                            {entry.confidence_delta.toFixed(2)})
+                          </p>
+                        ) : null}
+                        {entry.fallback_from && entry.fallback_to ? (
+                          <p className="ledger-supplement">
+                            Fallback {entry.fallback_from} -&gt; {entry.fallback_to}
+                          </p>
+                        ) : null}
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <p className="muted">Decision events appear after the first processed turn.</p>
+              )}
+            </article>
 
-          <article className="artifact-card">
-            <div className="artifact-card-header">
-              <div className="card-title-block">
-                <Image className="card-mark" src="/art/history-ribbon.svg" alt="" width={34} height={34} />
+            <article className="artifact-card">
+              <div className="artifact-card-header">
                 <div>
                   <h2>Run History</h2>
-                  <p className="artifact-caption">
-                    Persisted runs for the selected goal, ready for replay.
-                  </p>
+                  <p className="artifact-caption">Persisted runs for the selected goal.</p>
                 </div>
-              </div>
-              <div className="card-runtime-stack">
-                {renderSectionRuntime("history-sync")}
                 <span className="mini-badge mini-badge-neutral">{goalRuns.length} runs</span>
               </div>
-            </div>
 
-            {goalRuns.length > 0 ? (
-              <div className="history-list">
-                {goalRuns.map((candidate) => (
-                  <button
-                    key={candidate.run_id}
-                    type="button"
-                    className={`history-button ${
-                      selectedRunId === candidate.run_id ? "history-button-active" : ""
-                    }`}
-                    onClick={() => {
-                      void handleRunSelect(candidate.run_id);
-                    }}
-                    disabled={busy}
-                  >
-                    <div className="history-button-header">
-                      <strong>{shortRunLabel(candidate.run_id)}</strong>
-                      <span>{candidate.status}</span>
-                    </div>
-                    <p>
-                      {formatRunModeLabel(candidate.run_mode)} mode, {candidate.turn_number} turns,{" "}
-                      {candidate.active_roles.length} specialists
-                    </p>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="muted">No persisted runs yet for this goal.</p>
-            )}
-          </article>
+              {goalRuns.length > 0 ? (
+                <div className="history-list">
+                  {goalRuns.map((candidate) => (
+                    <button
+                      key={candidate.run_id}
+                      type="button"
+                      className={`history-button ${
+                        selectedRunId === candidate.run_id ? "history-button-active" : ""
+                      }`}
+                      onClick={() => {
+                        void handleRunSelect(candidate.run_id);
+                      }}
+                      disabled={busy}
+                    >
+                      <div className="history-button-header">
+                        <strong>{shortRunLabel(candidate.run_id)}</strong>
+                        <span>{candidate.status}</span>
+                      </div>
+                      <p>
+                        {formatRunModeLabel(candidate.run_mode)} mode, {candidate.turn_number}{" "}
+                        turns, {candidate.active_roles.length} specialists
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">No persisted runs yet for this goal.</p>
+              )}
+            </article>
 
-          <article className="artifact-card">
-            <div className="artifact-card-header">
-              <div className="card-title-block">
-                <Image className="card-mark" src="/art/history-ribbon.svg" alt="" width={34} height={34} />
+            <article className="artifact-card">
+              <div className="artifact-card-header">
                 <div>
                   <h2>Replay Timeline</h2>
                   <p className="artifact-caption">
@@ -1537,85 +1471,34 @@ export function HiveShell() {
                   </p>
                 </div>
               </div>
-              {renderSectionRuntime("history-sync")}
-            </div>
 
-            {run?.turn_history.length ? (
-              <div className="replay-list">
-                {run.turn_history.map((turn) => (
-                  <div key={`${run.run_id}-${turn.turn_number}`} className="replay-item">
-                    <div className="replay-item-header">
-                      <strong>
-                        T{turn.turn_number} - {ROLE_LABELS[turn.role]}
-                      </strong>
-                      <span>{formatIsoTimestamp(turn.created_at)}</span>
+              {run?.turn_history.length ? (
+                <div className="replay-list">
+                  {run.turn_history.map((turn) => (
+                    <div key={`${run.run_id}-${turn.turn_number}`} className="replay-item">
+                      <div className="replay-item-header">
+                        <strong>
+                          T{turn.turn_number} - {ROLE_LABELS[turn.role]}
+                        </strong>
+                        <span>{formatIsoTimestamp(turn.created_at)}</span>
+                      </div>
+                      <p className="replay-user">
+                        {turn.user_prompt || "Manual pass / replay event"}
+                      </p>
+                      <p className="replay-agent">
+                        {turn.specialist_output?.prompt_title ?? "Specialist response"}
+                      </p>
+                      <p>{turn.contribution}</p>
                     </div>
-                    <p className="replay-user">{turn.user_prompt || "Manual pass / replay event"}</p>
-                    <p className="replay-agent">
-                      {turn.specialist_output?.prompt_title ?? "Specialist response"}
-                    </p>
-                    <p>{turn.contribution}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="muted">Replay becomes available after the first turn.</p>
-            )}
-          </article>
-
-          <article className="artifact-card">
-            <div className="artifact-card-header">
-              <div>
-                <h2>Run Report</h2>
-                <p className="artifact-caption">
-                  A compact readout of turns, rounds, fallback, and next focus.
-                </p>
-              </div>
-              {renderSectionRuntime("specialist-engine")}
-            </div>
-
-            {report ? (
-              <div className="report-grid">
-                <p>
-                  <span>Status</span>
-                  <strong>{report.status}</strong>
-                </p>
-                <p>
-                  <span>Rounds</span>
-                  <strong>{report.rounds}</strong>
-                </p>
-                <p>
-                  <span>Turns</span>
-                  <strong>{report.turns}</strong>
-                </p>
-                <p>
-                  <span>Fallback</span>
-                  <strong>{report.fallback_layer}</strong>
-                </p>
-                <p>
-                  <span>Last confidence</span>
-                  <strong>{latestTurn ? formatPercent(latestTurn.confidence) : "n/a"}</strong>
-                </p>
-                <p>
-                  <span>Proof gate</span>
-                  <strong>{report.proof_gate_status.state}</strong>
-                </p>
-                {run?.activation_recommendations?.[0] ? (
-                  <p>
-                    <span>Top Skill</span>
-                    <strong>
-                      {ROLE_LABELS[run.activation_recommendations[0].role]} (
-                      {run.activation_recommendations[0].activation_score.toFixed(2)})
-                    </strong>
-                  </p>
-                ) : null}
-              </div>
-            ) : (
-              <p className="muted">Run report will appear after the first turn.</p>
-            )}
-          </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">Replay becomes available after the first turn.</p>
+              )}
+            </article>
+          </div>
         </aside>
-      </div>
+      </main>
     </div>
   );
 }
