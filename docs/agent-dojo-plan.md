@@ -256,6 +256,78 @@ its agents pass the dojo's capability/reliability gate." Do **not** claim confor
 non-existent agent-capability standard. Track NIST/CAISI — its forthcoming profiles could become the
 de facto target to align with.
 
+## 9.2) Frontend — the pixelated dojo (the UI)
+
+The dojo is rendered as a **pixel-art "training arena"**: every agent in the run is a sprite
+character, and the abstract eval pipeline becomes something you can *watch*. This is a deliberate
+design bet — the literature shows a sprite-based agent world is a legible, engaging way to make
+multi-agent behavior observable: Stanford's **Generative Agents / "Smallville"** populated a
+Stardew-Valley-style pixel town with 25 sprite agents specifically so humans could *observe and
+intervene* as agents acted. We borrow that affordance for evaluation. [Park et al. 2023, arXiv:2304.03442]
+
+### 9.2.1 Pixel cast
+- **Candidate sprite** — the agent under test, center stage in the "interview room." Its appearance
+  is derived deterministically from the candidate id (so the same candidate always looks the same).
+- **Examiner panel sprites** — one sprite per examiner lens (domain, edge-case, adversarial/red-team,
+  consistency), seated around the candidate. The sprite **holding the baton glyph** is the active
+  examiner (reuses the existing ring-radar turn state).
+- **Grader-panel sprites** — the disjoint-family judges, shown as a distinct trio so panel diversity
+  is *visible*; a disagreement flag pops a "⚠ split decision" speech bubble.
+- **Simulator sprite** — the user-simulator, visually tagged with its pinned model name (because the
+  simulator is part of the apparatus under test, §6).
+
+### 9.2.2 Pixel states that encode real signals (not just decoration)
+The art is a skin over the real per-run telemetry — every animation maps to a logged signal:
+- **Candidate "thinking"** animation while a turn is in flight; **sweat/strain** frames when
+  calibration (§8) flags high uncertainty or a confabulation signal fires.
+- **Round badges** above the candidate showing `pass^k` progress (e.g. ▰▰▰▱ = 3/4 trials passed).
+- **HP/competency bars** per competency that fill on certification and visibly **regress on the
+  held-out-variant re-test** if `transfer_gap` is large — memorization is *shown* as the bar dropping
+  when the question is rephrased.
+- **Learning/leveling animation** during remediation: the candidate visibly "studies" the served
+  material, then the lesson is added to a visible **skill-library inventory**.
+- **Examiner attack telegraph** for adversarial rounds (a wind-up before a red-team probe), with the
+  candidate's resist/fail shown as a parry or a hit.
+
+### 9.2.3 The serious layer underneath (toggle, don't hide)
+Pixel art is the *overview*; operators still need real observability. Per agent-observability best
+practice, provide a **trace drawer** that the cute layer drills into: an ordered **span
+timeline/waterfall** of the run (routing → model calls → tool calls → grading), with the four
+load-bearing signals — **traces, tool calls, decision steps, failures** — and a duration-sorted
+waterfall to find bottlenecks. The scorecard, decision ledger, and `transfer_gap` live here in plain
+form. [Arize Phoenix / Galileo / Datadog agent-tracing patterns, 2025–2026]
+
+Design rule: the pixel arena is for **legibility and engagement**; the trace drawer is the
+**ground truth**. Every sprite state must be click-through-able to the exact logged event that
+produced it — no decorative-only animation.
+
+## 9.3) What could be improved (future work, evidence-pointed)
+
+Honest roadmap of where the design is weakest and what research to pull on next:
+
+1. **Adversarial examiner is hand-built today.** The plan's red-team lens currently needs authored
+   attacks. Improvement: an **automated adversarial-generation** loop (attacker agents,
+   gradient-free jailbreak/prompt-injection search, curriculum escalation) so the attack suite stays
+   fresh and candidates can't overfit a static set. *Blocked on the gap-4 research pass (§12).*
+2. **Simulator trust.** The user-simulator is known-unreliable and we still lack a validated way to
+   calibrate it to human transcripts. Improvement: a **sim2real validation harness** (distributional
+   checks vs. recorded human interviews, periodic human-anchoring). *Blocked on gap-5 (§12).*
+3. **Calibration is single-lab.** HTC/UProp/SEPs are promising but unreplicated. Improvement: run all
+   three on our own long-horizon tool-use trajectories and keep only what holds; treat as monitored,
+   not gating, until validated.
+4. **Equal-difficulty outside math.** Variant generation is validated for math (GSM-Symbolic/GSM1k);
+   non-math/tool-use difficulty-matching is unsolved. Improvement: **metamorphic-testing**-style
+   transforms + a learned difficulty estimator, validated with human odd-one-out audits.
+5. **Pixel UI could mislead if over-trusted.** A charming animation can imply confidence the data
+   doesn't support. Improvement: surface uncertainty *in the sprite layer* (e.g. translucency =
+   low-confidence/abstention) so the calibration story isn't buried in the drawer.
+6. **Curriculum / adaptive difficulty.** Today routing targets the weakest competency; a richer
+   **leveling system** (tiered belts, prerequisite competencies, spaced re-testing) would turn the
+   one-shot certificate into a continuous "agent fitness" track.
+7. **Cost/latency as first-class arena state.** Enterprise reliability work stresses cost-efficiency,
+   not just accuracy; show token/latency burn as a visible "stamina" resource so cheap-but-reliable
+   beats expensive-but-flaky in the scorecard.
+
 ## 10) Reuse of the existing engine
 
 The current circle-junction stack maps onto the dojo with minimal waste:
@@ -268,7 +340,7 @@ The current circle-junction stack maps onto the dojo with minimal waste:
 | Verifier + proof gate | Certification gate (held-out variant thresholds) |
 | Usefulness report | Candidate scorecard (per-competency, transfer_gap, cost) |
 | Fallback controller | Remediation step (serve material → lesson library → re-test) |
-| Ring radar UI + artifact panel | Interview-room + live scorecard + trace drawer |
+| Ring radar UI + artifact panel | Pixel-art dojo arena (§9.2) + live scorecard + trace drawer |
 
 New primitives to build: **Candidate Adapter**, **Grader Panel (disjoint families)**,
 **validated User-Simulator**, **Lesson/Skill Library**, **Trace Auditor**, **held-out variant
@@ -338,3 +410,5 @@ generator**, **exam-pack registry** (HR first).
 - ISO/IEC 42001:2023 (AI management system) — iso.org/standard/42001
 - NIST AI Agent Standards Initiative (Feb 2026) — nist.gov
 - NYC Local Law 144 fairness analysis — arXiv:2501.10371
+- Generative Agents / Smallville (pixel sprite agent sandbox) — arXiv:2304.03442
+- Agent observability / tracing patterns — Arize Phoenix, Galileo, Datadog (2025–2026)
