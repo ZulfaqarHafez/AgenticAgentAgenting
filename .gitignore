@@ -1,12 +1,5 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-.pytest_cache/
-.coverage
-htmlcov/
-backend/.venv/
+# Rust
+backend/target/
 
 # Node
 node_modules/

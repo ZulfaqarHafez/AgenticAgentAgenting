@@ -4,9 +4,6 @@ import { defineConfig } from "@playwright/test";
 
 const frontendRoot = __dirname;
 const backendRoot = path.resolve(__dirname, "../backend");
-const backendPython = path
-  .resolve(backendRoot, ".venv", "Scripts", "python.exe")
-  .replace(/\\/g, "/");
 
 export default defineConfig({
   testDir: "./tests",
@@ -25,16 +22,18 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: `powershell -NoProfile -Command "& '${backendPython}' -m uvicorn app.main:app --host 127.0.0.1 --port 8010"`,
+      command: "cargo run --release",
       cwd: backendRoot,
+      env: { HIVE_HOST: "127.0.0.1", HIVE_PORT: "8010" },
       url: "http://127.0.0.1:8010/health",
       reuseExistingServer: false,
-      timeout: 120_000,
+      // The first run compiles the backend, which can take a few minutes.
+      timeout: 600_000,
     },
     {
-      command:
-        "powershell -NoProfile -Command \"$env:NEXT_PUBLIC_API_BASE_URL='http://127.0.0.1:8010'; node .\\node_modules\\next\\dist\\bin\\next build; node .\\node_modules\\next\\dist\\bin\\next start --hostname 127.0.0.1 --port 3010\"",
+      command: "npm run build && npm run start -- --hostname 127.0.0.1 --port 3010",
       cwd: frontendRoot,
+      env: { NEXT_PUBLIC_API_BASE_URL: "http://127.0.0.1:8010" },
       url: "http://127.0.0.1:3010",
       reuseExistingServer: false,
       timeout: 180_000,

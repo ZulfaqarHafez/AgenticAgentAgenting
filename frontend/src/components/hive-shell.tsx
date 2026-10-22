@@ -223,6 +223,9 @@ export function HiveShell() {
   const selectedGoalIdRef = useRef<string | null>(null);
   const selectedRunIdRef = useRef<string | null>(null);
   const freshMissionPinnedRef = useRef(false);
+  // Bumped whenever the shown run changes. A background reload that started before a
+  // bump discards its result, so it can't overwrite newer state with a stale run.
+  const runViewVersionRef = useRef(0);
   const [activity, setActivity] = useState<ActivityState>({
     phase: "idle",
     title: "Ready",
@@ -292,12 +295,16 @@ export function HiveShell() {
     }
   }, []);
 
-  const syncRunView = useCallback(async (nextRun: Run) => {
+  const syncRunView = useCallback(async (nextRun: Run, expectedVersion?: number) => {
     const [nextReport, nextLedger, nextProofGate] = await Promise.all([
       getRunReport(nextRun.run_id),
       getDecisionLedger(nextRun.run_id),
       getProofGate(nextRun.run_id),
     ]);
+    if (expectedVersion !== undefined && runViewVersionRef.current !== expectedVersion) {
+      return;
+    }
+    runViewVersionRef.current += 1;
     setRun(nextRun);
     setSelectedRunId(nextRun.run_id);
     setReport(nextReport);
@@ -317,8 +324,9 @@ export function HiveShell() {
         return;
       }
 
+      const version = runViewVersionRef.current;
       const runList = await listRuns(goalId);
-      if (selectedGoalIdRef.current !== goalId) {
+      if (selectedGoalIdRef.current !== goalId || runViewVersionRef.current !== version) {
         return;
       }
       setGoalRuns(runList);
@@ -343,7 +351,7 @@ export function HiveShell() {
       if (selectedGoalIdRef.current !== goalId) {
         return;
       }
-      await syncRunView(hydratedRun);
+      await syncRunView(hydratedRun, version);
     },
     [syncRunView]
   );
@@ -589,6 +597,7 @@ export function HiveShell() {
 
   async function handleGoalChange(goalId: string | null) {
     freshMissionPinnedRef.current = goalId === null;
+    runViewVersionRef.current += 1;
     setSelectedGoalId(goalId);
     setSelectedRunId(null);
     setGoalRuns([]);
@@ -600,6 +609,7 @@ export function HiveShell() {
 
   function handleNewMission() {
     freshMissionPinnedRef.current = true;
+    runViewVersionRef.current += 1;
     setSelectedGoalId(null);
     setSelectedRunId(null);
     setGoalRuns([]);

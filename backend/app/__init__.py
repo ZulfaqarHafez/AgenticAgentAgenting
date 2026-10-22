@@ -1,2 +1,0 @@
-"""Hive Agent backend package."""
-
