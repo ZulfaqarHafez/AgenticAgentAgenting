@@ -16,6 +16,8 @@ async function openApp(page: Page) {
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Hive Circle Console" })).toBeVisible();
+  // Wait for the saved mission and its history to load, so tests don't race the first render.
+  await page.waitForLoadState("networkidle");
 
   return consoleErrors;
 }
@@ -56,6 +58,8 @@ test("loads the shell without hydration errors", async ({ page }) => {
 
 test("starter prompt seeds the composer", async ({ page }) => {
   await openApp(page);
+  // Starter cards only show when no mission is selected, and earlier tests leave missions behind.
+  await resetToFreshMission(page);
 
   await page.locator(".starter-card").first().click();
   await expect(page.getByRole("textbox")).toHaveValue(/Design an adaptable multi-agent traffic circle/i);
