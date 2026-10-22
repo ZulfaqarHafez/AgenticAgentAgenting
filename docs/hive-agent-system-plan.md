@@ -186,8 +186,8 @@ Generate per run and periodic reports:
 - Mobile-first responsive card behavior and no deep nested nav.
 
 ## 10) Suggested MVP stack
-- Backend: Python `FastAPI`.
-- Orchestration: `LangGraph` state graph + custom ring scheduler.
+- Backend: Rust (`axum` + `tokio`).
+- Orchestration: custom ring scheduler (plain Rust, no graph framework).
 - Storage: Postgres (goals/runs), Redis (short-lived ring state), object store for artifacts.
 - Frontend: Next.js + Tailwind + component system (shadcn or custom).
 - Observability: OpenTelemetry + structured run logs.
