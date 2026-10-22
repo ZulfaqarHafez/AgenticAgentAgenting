@@ -9,10 +9,10 @@ Singapore (about 1.35° N, 103.8° E) is a small, low-lying island at the southe
 | Mean annual temperature | ≈ 27.5–28 °C; 2023 annual mean 28.2 °C at Changi, 0.4 °C above the 1991–2020 average | MSS annual climate report |
 | Typical daily range | Max ≈ 30.5–32 °C, min ≈ 24–26 °C | MSS normals |
 | January example (1991–2020) | Mean max 30.6 °C, mean min 24.3 °C, rainfall ≈ 222 mm, ≈ 13 rain days | MSS station statistics |
-| Mean annual rainfall | ≈ 2,166 mm (1981–2017 average); station and period dependent, recent decades often higher | MSS / conference data; **verify** 1991–2020 normal |
+| Mean annual rainfall | Changi 2,149 mm (1991–2020, 26 complete years; range 1,119–2,886 mm); western and central stations are wetter | Computed from MSS daily files (chapter 19) |
 | Relative humidity | Typically > 90% at night and early morning, 60–70% on sunny afternoons | General climatology |
-| Wettest months | Typically November–January | MSS |
-| Driest month | Typically February | MSS |
+| Wettest months | December (338 mm at Changi), November (257 mm), January (227 mm) | Chapter 19 |
+| Driest month | February (108 mm, 6.4 rain days at Changi) | Chapter 19 |
 | Lightning | High thunderstorm frequency by global standards | MSS |
 
 The 2014–2023 decade was Singapore's warmest on record (mean 28.06 °C), and warming is ongoing. Use recent normals and trend-aware baselines (chapter 11).
@@ -29,7 +29,7 @@ The 2014–2023 decade was Singapore's warmest on record (mean 28.06 °C), and w
 ### Inter-monsoon (about late March to May)
 
 - Light and variable winds, strong daytime heating.
-- **Afternoon and early-evening thunderstorms** are the dominant pattern: intense, localised, short (often 1–2 hours) with lightning and gusts.
+- **Afternoon and early-evening thunderstorms** are the dominant pattern: intense, localised, short (often 1–2 hours) with lightning and gusts. In April 2025, 87% of heavy gauge-hours fell between 12:00 and 21:00 (chapter 19).
 - April–May are among the hottest months.
 
 ### Southwest monsoon (about June to September)
@@ -42,14 +42,14 @@ The 2014–2023 decade was Singapore's warmest on record (mean 28.06 °C), and w
 
 ### Inter-monsoon (about October to November)
 
-- Light, variable winds again; frequent afternoon and evening thunderstorms, often heavy.
+- Light, variable winds again; often described as afternoon and evening thunderstorms, but the timing varies by year: in October 2025 heavy rain came mostly pre-dawn and late at night (chapter 19). Use multi-year hourly baselines rather than assuming.
 - November is one of the wettest months as the northeast monsoon sets in.
 
 ## 14.3 Key rain-producing systems
 
 | System | When | Time of day | Character | Forecasting approach |
 | --- | --- | --- | --- | --- |
-| Diurnal convection | All year, most in inter-monsoons | 14:00–19:00 SGT typical | Localised, intense, short; sea-breeze triggered | Diurnal climatology + CAPE/moisture + radar nowcast |
+| Diurnal convection | All year; strongest Apr and Dec in the 2024–25 sample | Late afternoon (15:00–19:00 SGT) in Dec 2024 and Apr 2025; **not** in Oct 2025 (chapter 19) | Localised, intense, short; sea-breeze triggered | Diurnal climatology + CAPE/moisture + radar nowcast |
 | Sumatra squall | Mainly SW monsoon and inter-monsoons (Apr–Nov) | Pre-dawn to morning (≈ 04:00–10:00 SGT) | Organised line, gusty, 1–2 h heavy rain | Track on satellite/radar from Sumatra overnight; NWP for development |
 | Monsoon surge | NE monsoon (Dec–Feb) | Any; often prolonged | Widespread, continuous, windy | Global NWP and ensembles, 3–7 days ahead |
 | MJO active phase | All year | Modulates others | Enhances rainfall for 1–3 weeks | RMM phase 4–5, extended-range ensembles |

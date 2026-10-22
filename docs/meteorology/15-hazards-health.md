@@ -104,7 +104,7 @@ NEA's heat stress advisory (launched 2023) uses Wet Bulb Globe Temperature (chap
 | 31 to < 33 °C | Moderate | Reduce outdoor activities, drink more fluids, take regular breaks |
 | ≥ 33 °C | High | Minimise outdoor activities, actively cool down |
 
-- NEA operates nine WBGT stations islandwide; published readings are 15-minute averages from the nearest station.
+- NEA launched the advisory with nine WBGT stations; the real-time API returned **30 WBGT stations** in October 2026 (chapter 19). Readings are 15-minute averages; use the nearest station.
 - Some sectors use stricter thresholds (for example outdoor adventure education providers take precautions above 30 °C WBGT).
 - Higher-risk groups (outdoor workers, elderly, young children, people with chronic conditions, athletes) need lower thresholds.
 

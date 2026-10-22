@@ -29,6 +29,7 @@ It has two parts:
 | 16 | [Data sources](16-data-sources.md) | Singapore and global data feeds, formats, update cadence |
 | 17 | [Agent pipeline](17-agent-pipeline.md) | End-to-end algorithm for a weather decision agent, roles, guardrails |
 | 18 | [Constants, units and glossary](18-constants-glossary.md) | Physical constants, unit conversions, glossary |
+| 19 | [Real data check](19-real-data-check.md) | What the real Singapore and global data sources return, their quirks, measured baselines and a first forecast verification |
 
 ## Conventions
 

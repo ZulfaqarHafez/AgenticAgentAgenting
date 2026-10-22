@@ -4,21 +4,21 @@ Where agents get observations, forecasts and reference data. Endpoints, limits a
 
 ## 16.1 Singapore (data.gov.sg / NEA)
 
-NEA publishes real-time weather and environmental data through data.gov.sg. The v2 real-time API family is served from `api-open.data.gov.sg/v2/real-time/api/...`; dataset metadata is under `api-production.data.gov.sg/v2/public/api/...`. A free API key from the data.gov.sg developer portal gives higher rate limits (rate limits enforced from end of 2025).
+NEA publishes real-time weather and environmental data through data.gov.sg. The v2 real-time API family is served from `api-open.data.gov.sg/v2/real-time/api/...`; dataset metadata is under `api-production.data.gov.sg/v2/public/api/...`. A free API key from the data.gov.sg developer portal gives higher rate limits (rate limits enforced from end of 2025). **Tested details (paging, history from Dec 2016, blocked default Python User-Agent, units) are in chapter 19.**
 
 | Dataset | Content | Cadence | Notes |
 | --- | --- | --- | --- |
 | Rainfall | Per-station rainfall | 5 min | Dense gauge network; values are 5-min totals |
 | Air temperature | Per-station | 1 min | |
 | Relative humidity | Per-station | 1 min | |
-| Wind speed and direction | Per-station | 1 min | |
+| Wind speed and direction | Per-station (18) | 1 min | Speed in **knots** |
 | 2-hour weather forecast | Text forecast per area (≈ 47 areas) | Every 30 min | NEA nowcast; categorical ("Thundery Showers", "Cloudy") |
 | 24-hour forecast | Regional forecasts (north, south, east, west, central) | Several times daily | |
 | 4-day outlook | Daily outlook | Daily | |
 | PSI and PM2.5 | Per region, hourly | Hourly | Haze monitoring |
 | UV index | Hourly | Hourly | |
-| WBGT | Heat stress readings | ~15 min | Real-time API component (endpoint path: **verify**) |
-| Lightning | Lightning observations | Near real time | Real-time API component (endpoint path: **verify**) |
+| WBGT | Heat stress readings, 30 stations | 15 min | `weather?api=wbgt`; values are text |
+| Lightning | Individual strikes (cloud-to-cloud `C`, cloud-to-ground `G`) | 2-min records | `weather?api=lightning` |
 
 Practical notes:
 - Station metadata (ID, name, latitude, longitude) comes with each response; store it.
@@ -27,7 +27,7 @@ Practical notes:
 - The data.gov.sg status page reports outages per component; handle missing data gracefully.
 
 Other Singapore sources:
-- **weather.gov.sg (MSS)**: radar imagery, climate station statistics, historical daily data per station (downloadable), climate reports. Check terms before automated use.
+- **weather.gov.sg (MSS)**: daily climate CSVs per station and month (`files/dailydata/DAILYDATA_<station>_<YYYYMM>.csv`, Changi from 1991+), radar rain-area PNGs every 5 minutes kept ~30 days (no official API, no published georeference), climate reports. Throttles fast downloads with 403. Check terms before automated use.
 - **PUB**: water-level information and flood alerts (Telegram channel, myENV app, SMS subscription).
 - **MPA**: tide predictions.
 
@@ -41,7 +41,7 @@ Other Singapore sources:
 | **DWD ICON** | Global and ensemble | Open data server |
 | **Copernicus Climate Data Store** | ERA5 reanalysis, seasonal forecasts | Free account and API |
 
-**Open-Meteo is the fastest start**: one HTTP request returns hourly forecasts from several models for a latitude/longitude, including ensemble members, so an agent can compute probabilities without handling GRIB files.
+**Open-Meteo is the fastest start** (but its free daily quota is per IP and was exhausted during testing from a shared IP; see chapter 19): one HTTP request returns hourly forecasts from several models for a latitude/longitude, including ensemble members, so an agent can compute probabilities without handling GRIB files.
 
 Example request shape (verify parameters in the docs):
 

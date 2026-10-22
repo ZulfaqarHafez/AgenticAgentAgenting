@@ -65,6 +65,7 @@
     "is_part_of",
     "limited_by",
     "limits",
+    "measured",
     "measured_as",
     "measured_by",
     "mitigates",
@@ -87,6 +88,7 @@
     "shifts",
     "signals",
     "solves",
+    "tested",
     "traded_against",
     "trained_on",
     "triggers",
@@ -1477,6 +1479,41 @@
       "summary": "Reanalysis download."
     },
     {
+      "id": "mss_daily_csv",
+      "label": "MSS daily climate files",
+      "type": "data_source",
+      "chapter": "19-real-data-check.md",
+      "summary": "Per-station monthly CSVs: daily rain, max 30/60/120-min rain, temperature, wind; Changi from 1991."
+    },
+    {
+      "id": "radar_images",
+      "label": "MSS radar rain-area images",
+      "type": "data_source",
+      "chapter": "19-real-data-check.md",
+      "summary": "480×480 PNG every 5 min, ~30-day retention, no official API or georeference."
+    },
+    {
+      "id": "historical_forecasts",
+      "label": "Open-Meteo historical forecasts",
+      "type": "data_source",
+      "chapter": "19-real-data-check.md",
+      "summary": "Archived past model forecasts for backtesting the scorecard."
+    },
+    {
+      "id": "lightning_feed",
+      "label": "data.gov.sg lightning feed",
+      "type": "data_source",
+      "chapter": "19-real-data-check.md",
+      "summary": "Individual strikes (cloud-to-cloud / cloud-to-ground) in 2-min records."
+    },
+    {
+      "id": "data_check",
+      "label": "Real data check",
+      "type": "method",
+      "chapter": "19-real-data-check.md",
+      "summary": "Live probing of sources: formats, history depth, quirks, first baselines and verification."
+    },
+    {
       "id": "step_router",
       "label": "1 Router",
       "type": "agent_step",
@@ -2737,6 +2774,71 @@
       "source": "era5_cds",
       "relation": "provides",
       "target": "reanalysis"
+    },
+    {
+      "source": "mss_daily_csv",
+      "relation": "provides",
+      "target": "climatology"
+    },
+    {
+      "source": "mss_daily_csv",
+      "relation": "provides",
+      "target": "idf"
+    },
+    {
+      "source": "radar_images",
+      "relation": "provides",
+      "target": "weather_radar"
+    },
+    {
+      "source": "radar_images",
+      "relation": "feeds",
+      "target": "nowcast"
+    },
+    {
+      "source": "historical_forecasts",
+      "relation": "feeds",
+      "target": "scorecard"
+    },
+    {
+      "source": "lightning_feed",
+      "relation": "provides",
+      "target": "lightning"
+    },
+    {
+      "source": "lightning_feed",
+      "relation": "is_part_of",
+      "target": "datagov_sg"
+    },
+    {
+      "source": "data_check",
+      "relation": "tested",
+      "target": "datagov_sg"
+    },
+    {
+      "source": "data_check",
+      "relation": "tested",
+      "target": "mss_daily_csv"
+    },
+    {
+      "source": "data_check",
+      "relation": "tested",
+      "target": "radar_images"
+    },
+    {
+      "source": "data_check",
+      "relation": "tested",
+      "target": "open_meteo"
+    },
+    {
+      "source": "data_check",
+      "relation": "measured",
+      "target": "diurnal_cycle"
+    },
+    {
+      "source": "data_check",
+      "relation": "measured",
+      "target": "representativeness"
     },
     {
       "source": "forecaster_workflow",

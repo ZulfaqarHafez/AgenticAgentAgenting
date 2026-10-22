@@ -69,7 +69,7 @@ Extrapolation cannot see storms that do not exist yet. Signals that new storms a
 | First radar echoes aloft (before rain reaches ground) | Radar | 10–20 min |
 | First lightning | Lightning network | 0–10 min (storm already mature) |
 
-**Diurnal climatology** is an essential prior: inter-monsoon afternoon storms over Singapore are most likely roughly 14:00–19:00 SGT, whereas Sumatra squalls arrive mostly pre-dawn to morning (chapter 14).
+**Diurnal climatology** is an essential prior, but it must be measured, not assumed: in the 2024–25 gauge sample, rain peaked around 17:00–18:00 SGT in December and April, around 11:00 in July (Sumatra squall season), and had no afternoon peak in October (chapter 19).
 
 ## 10.6 Blending nowcasts with NWP
 
