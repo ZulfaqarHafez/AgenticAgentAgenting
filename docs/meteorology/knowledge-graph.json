@@ -1,0 +1,2937 @@
+{
+  "name": "Meteorology knowledge graph",
+  "description": "Concepts, variables, formulas, instruments, models, methods, metrics, hazards, data sources and agent steps for a Singapore-focused weather decision agent. Each node links to the chapter that explains it.",
+  "version": 1,
+  "node_types": [
+    "agent_step",
+    "concept",
+    "data_source",
+    "decision",
+    "hazard",
+    "index",
+    "instrument",
+    "method",
+    "metric",
+    "model",
+    "phenomenon",
+    "season",
+    "variable"
+  ],
+  "relations": [
+    "affects",
+    "applies_to",
+    "avoids",
+    "baseline_for",
+    "built_from",
+    "causes",
+    "characterises",
+    "combines",
+    "computed_by",
+    "computed_from",
+    "confounds",
+    "constrained_by",
+    "controls",
+    "decomposes_into",
+    "defined_by",
+    "defines",
+    "degrades",
+    "depends_on",
+    "derived_from",
+    "detected_by",
+    "diagnoses",
+    "distinct_from",
+    "enhanced_by",
+    "estimated_by",
+    "estimates",
+    "extends",
+    "feeds",
+    "forces",
+    "forecasts",
+    "generalises",
+    "governed_by",
+    "grids",
+    "implemented_by",
+    "improves",
+    "includes",
+    "indicated_by",
+    "indicates",
+    "informs",
+    "inhibited_by",
+    "initialised_by",
+    "integrates",
+    "interacts_with",
+    "invalid_when",
+    "is_a",
+    "is_part_of",
+    "limited_by",
+    "limits",
+    "measured_as",
+    "measured_by",
+    "mitigates",
+    "models",
+    "modifies",
+    "modulates",
+    "monitored_by",
+    "next",
+    "occurs_in",
+    "optimised_by",
+    "outputs",
+    "overrides",
+    "predicts",
+    "produces",
+    "provides",
+    "related_to",
+    "requires",
+    "samples_uncertainty_of",
+    "selects",
+    "shifts",
+    "signals",
+    "solves",
+    "traded_against",
+    "trained_on",
+    "triggers",
+    "updates",
+    "uses",
+    "variant",
+    "weak_at",
+    "weakened_by",
+    "yields"
+  ],
+  "nodes": [
+    {
+      "id": "temperature",
+      "label": "Air temperature",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Instantaneous air temperature at 1.25–2 m."
+    },
+    {
+      "id": "dewpoint",
+      "label": "Dewpoint",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Temperature at which air saturates when cooled at constant pressure.",
+      "formula": "T_d = 243.5γ/(17.67−γ), γ = ln(RH/100) + 17.67T/(T+243.5)"
+    },
+    {
+      "id": "relative_humidity",
+      "label": "Relative humidity",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Ratio of vapour pressure to saturation vapour pressure.",
+      "formula": "RH = 100·e/e_s(T)"
+    },
+    {
+      "id": "vapour_pressure",
+      "label": "Vapour pressure",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Partial pressure of water vapour.",
+      "formula": "e = e_s(T_d)"
+    },
+    {
+      "id": "saturation_vapour_pressure",
+      "label": "Saturation vapour pressure",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Vapour pressure at saturation; ~7%/°C increase.",
+      "formula": "e_s = 6.112·exp(17.67T/(T+243.5)) hPa"
+    },
+    {
+      "id": "mixing_ratio",
+      "label": "Mixing ratio",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Mass of vapour per mass of dry air.",
+      "formula": "r = 0.622·e/(p−e)"
+    },
+    {
+      "id": "specific_humidity",
+      "label": "Specific humidity",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Mass of vapour per mass of moist air.",
+      "formula": "q = 0.622e/(p−0.378e)"
+    },
+    {
+      "id": "virtual_temperature",
+      "label": "Virtual temperature",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Temperature of dry air with the same density as the moist air.",
+      "formula": "T_v ≈ T(1+0.608q)"
+    },
+    {
+      "id": "pressure",
+      "label": "Pressure",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Atmospheric pressure; small gradients near the equator."
+    },
+    {
+      "id": "potential_temperature",
+      "label": "Potential temperature θ",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Temperature after adiabatic move to 1000 hPa; conserved in dry motion.",
+      "formula": "θ = T(1000/p)^0.2857"
+    },
+    {
+      "id": "theta_e",
+      "label": "Equivalent potential temperature θe",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Includes latent heat; conserved in moist adiabatic motion.",
+      "formula": "Bolton (1980) eq. 43"
+    },
+    {
+      "id": "wet_bulb",
+      "label": "Wet-bulb temperature",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Lowest temperature by evaporative cooling.",
+      "formula": "Stull (2011)"
+    },
+    {
+      "id": "wind",
+      "label": "Wind (u, v)",
+      "type": "variable",
+      "chapter": "05-observations-qc.md",
+      "summary": "Wind vector; average components, not directions.",
+      "formula": "u = −|V|sinφ, v = −|V|cosφ"
+    },
+    {
+      "id": "gust",
+      "label": "Wind gust",
+      "type": "variable",
+      "chapter": "15-hazards-health.md",
+      "summary": "Max 3-s wind; convective gusts unrelated to mean wind.",
+      "formula": "V_gust ≈ G·V_mean, G≈1.4–2"
+    },
+    {
+      "id": "rainfall",
+      "label": "Rainfall",
+      "type": "variable",
+      "chapter": "05-observations-qc.md",
+      "summary": "Accumulated precipitation depth (mm)."
+    },
+    {
+      "id": "rain_rate",
+      "label": "Rain rate",
+      "type": "variable",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "Precipitation intensity (mm/h).",
+      "formula": "R = (Z/a)^(1/b)"
+    },
+    {
+      "id": "reflectivity",
+      "label": "Radar reflectivity Z",
+      "type": "variable",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "Sum of drop diameters to the sixth power.",
+      "formula": "dBZ = 10·log10(Z)"
+    },
+    {
+      "id": "brightness_temperature",
+      "label": "Brightness temperature",
+      "type": "variable",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "IR radiance as black-body temperature; cold = tall cloud.",
+      "formula": "Inverse Planck"
+    },
+    {
+      "id": "cloud_top_cooling",
+      "label": "Cloud-top cooling rate",
+      "type": "variable",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "Rate of IR top cooling; signals growing convection.",
+      "formula": "ΔT_B/Δt"
+    },
+    {
+      "id": "lightning_rate",
+      "label": "Lightning flash rate",
+      "type": "variable",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "Flashes per minute in a cell; jumps precede severe weather."
+    },
+    {
+      "id": "pm25",
+      "label": "PM2.5",
+      "type": "variable",
+      "chapter": "15-hazards-health.md",
+      "summary": "Fine particulate concentration; haze indicator."
+    },
+    {
+      "id": "thickness",
+      "label": "Layer thickness",
+      "type": "variable",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Height difference between pressure levels; warmer = thicker.",
+      "formula": "Δz = (R_d·T̄_v/g)·ln(p1/p2)"
+    },
+    {
+      "id": "ideal_gas_law",
+      "label": "Equation of state",
+      "type": "concept",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Relates pressure, density and temperature.",
+      "formula": "p = ρR_dT_v"
+    },
+    {
+      "id": "hydrostatic_balance",
+      "label": "Hydrostatic balance",
+      "type": "concept",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Vertical pressure gradient balances gravity.",
+      "formula": "∂p/∂z = −ρg"
+    },
+    {
+      "id": "clausius_clapeyron",
+      "label": "Clausius–Clapeyron",
+      "type": "concept",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Saturation vapour pressure rises ~7% per °C."
+    },
+    {
+      "id": "lapse_rate",
+      "label": "Lapse rate",
+      "type": "concept",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Rate temperature falls with height.",
+      "formula": "Γ_d = g/c_p ≈ 9.8 K/km"
+    },
+    {
+      "id": "conditional_instability",
+      "label": "Conditional instability",
+      "type": "concept",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Unstable only if saturated: Γ_m < Γ_e < Γ_d."
+    },
+    {
+      "id": "lcl",
+      "label": "Lifting condensation level",
+      "type": "concept",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Cloud base for a lifted parcel.",
+      "formula": "z_LCL ≈ 125(T−T_d) m"
+    },
+    {
+      "id": "parcel_theory",
+      "label": "Parcel theory",
+      "type": "concept",
+      "chapter": "03-stability-convection.md",
+      "summary": "Lifted parcel compared with environment to judge buoyancy."
+    },
+    {
+      "id": "lfc",
+      "label": "Level of free convection",
+      "type": "concept",
+      "chapter": "03-stability-convection.md",
+      "summary": "Height where a lifted parcel becomes buoyant."
+    },
+    {
+      "id": "buoyancy",
+      "label": "Buoyancy",
+      "type": "concept",
+      "chapter": "03-stability-convection.md",
+      "summary": "Upward acceleration from virtual temperature excess.",
+      "formula": "B = g(T_vp − T_ve)/T_ve"
+    },
+    {
+      "id": "entrainment",
+      "label": "Entrainment",
+      "type": "concept",
+      "chapter": "03-stability-convection.md",
+      "summary": "Mixing of environmental air into updrafts; dry air weakens them."
+    },
+    {
+      "id": "wind_shear",
+      "label": "Vertical wind shear",
+      "type": "concept",
+      "chapter": "03-stability-convection.md",
+      "summary": "Change of wind with height; controls storm organisation.",
+      "formula": "|ΔV| = √((u2−u1)²+(v2−v1)²)"
+    },
+    {
+      "id": "convective_ingredients",
+      "label": "Convective ingredients",
+      "type": "concept",
+      "chapter": "03-stability-convection.md",
+      "summary": "Moisture + instability + lift (+ shear for organisation)."
+    },
+    {
+      "id": "precipitation_efficiency",
+      "label": "Precipitation efficiency",
+      "type": "concept",
+      "chapter": "03-stability-convection.md",
+      "summary": "Fraction of condensate reaching the ground; high in the tropics."
+    },
+    {
+      "id": "cape",
+      "label": "CAPE",
+      "type": "index",
+      "chapter": "03-stability-convection.md",
+      "summary": "Buoyant energy available to updrafts (J/kg).",
+      "formula": "CAPE = g∫(T_vp−T_ve)/T_ve dz"
+    },
+    {
+      "id": "cin",
+      "label": "CIN",
+      "type": "index",
+      "chapter": "03-stability-convection.md",
+      "summary": "Energy barrier below the LFC."
+    },
+    {
+      "id": "lifted_index",
+      "label": "Lifted Index",
+      "type": "index",
+      "chapter": "03-stability-convection.md",
+      "summary": "T_env(500) − T_parcel(500); negative = unstable.",
+      "formula": "LI = T_e500 − T_p500"
+    },
+    {
+      "id": "k_index",
+      "label": "K-index",
+      "type": "index",
+      "chapter": "03-stability-convection.md",
+      "summary": "Lapse rate + moisture; good tropical thunderstorm indicator.",
+      "formula": "K = (T850−T500) + Td850 − (T700−Td700)"
+    },
+    {
+      "id": "total_totals",
+      "label": "Total Totals",
+      "type": "index",
+      "chapter": "03-stability-convection.md",
+      "summary": "Lapse rate and moisture index.",
+      "formula": "TT = T850 + Td850 − 2T500"
+    },
+    {
+      "id": "precipitable_water",
+      "label": "Precipitable water",
+      "type": "index",
+      "chapter": "03-stability-convection.md",
+      "summary": "Column water vapour as liquid depth (mm).",
+      "formula": "PW = (1/g)∫q dp"
+    },
+    {
+      "id": "w_max",
+      "label": "Max updraft (parcel)",
+      "type": "index",
+      "chapter": "03-stability-convection.md",
+      "summary": "Upper bound on updraft speed.",
+      "formula": "w_max = √(2·CAPE)"
+    },
+    {
+      "id": "heat_index",
+      "label": "Heat index",
+      "type": "index",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Apparent temperature from T and RH (Rothfusz).",
+      "formula": "NWS Rothfusz regression"
+    },
+    {
+      "id": "wbgt",
+      "label": "WBGT",
+      "type": "index",
+      "chapter": "02-thermodynamics-moisture.md",
+      "summary": "Heat stress index used by NEA.",
+      "formula": "0.7T_nw + 0.2T_g + 0.1T_a"
+    },
+    {
+      "id": "psi",
+      "label": "PSI",
+      "type": "index",
+      "chapter": "15-hazards-health.md",
+      "summary": "Singapore air quality index; max of pollutant sub-indices.",
+      "formula": "PSI = max_j I_j"
+    },
+    {
+      "id": "rmm",
+      "label": "RMM index",
+      "type": "index",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "MJO phase and amplitude from two principal components.",
+      "formula": "A = √(RMM1²+RMM2²)"
+    },
+    {
+      "id": "nino34",
+      "label": "Niño 3.4 / ONI",
+      "type": "index",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Central Pacific SST anomaly; ENSO state."
+    },
+    {
+      "id": "dmi",
+      "label": "Dipole Mode Index",
+      "type": "index",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "West minus south-east Indian Ocean SST anomaly."
+    },
+    {
+      "id": "coriolis",
+      "label": "Coriolis parameter",
+      "type": "concept",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "f = 2Ωsinφ; ~30× weaker at Singapore than 45°.",
+      "formula": "f = 2Ω sinφ"
+    },
+    {
+      "id": "geostrophic_wind",
+      "label": "Geostrophic wind",
+      "type": "concept",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Pressure–Coriolis balance; fails near the equator.",
+      "formula": "V_g = (1/ρf) k×∇p"
+    },
+    {
+      "id": "rossby_number",
+      "label": "Rossby number",
+      "type": "concept",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "U/(fL); ≫1 near the equator.",
+      "formula": "Ro = U/(fL)"
+    },
+    {
+      "id": "convergence",
+      "label": "Convergence / divergence",
+      "type": "concept",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Low-level convergence forces ascent.",
+      "formula": "∂w/∂z = −∇·V_h"
+    },
+    {
+      "id": "vorticity",
+      "label": "Vorticity",
+      "type": "concept",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Rotation of the flow.",
+      "formula": "ζ = ∂v/∂x − ∂u/∂y"
+    },
+    {
+      "id": "diurnal_pressure_tide",
+      "label": "Diurnal pressure tide",
+      "type": "concept",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Twice-daily ~1–1.5 hPa oscillation dominating tropical pressure changes."
+    },
+    {
+      "id": "sea_breeze",
+      "label": "Sea / land breeze",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Daytime onshore flow; convergence triggers storms."
+    },
+    {
+      "id": "urban_heat_island",
+      "label": "Urban heat island",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Urban areas warmer, especially at night."
+    },
+    {
+      "id": "thunderstorm",
+      "label": "Thunderstorm",
+      "type": "phenomenon",
+      "chapter": "03-stability-convection.md",
+      "summary": "Deep convection with lightning; main heavy-rain producer."
+    },
+    {
+      "id": "diurnal_convection",
+      "label": "Afternoon diurnal convection",
+      "type": "phenomenon",
+      "chapter": "14-singapore-regional.md",
+      "summary": "Heating- and sea-breeze-driven storms, 14:00–19:00 SGT."
+    },
+    {
+      "id": "sumatra_squall",
+      "label": "Sumatra squall",
+      "type": "phenomenon",
+      "chapter": "14-singapore-regional.md",
+      "summary": "Nocturnal line from Sumatra; pre-dawn–morning gusts and rain."
+    },
+    {
+      "id": "monsoon_surge",
+      "label": "Monsoon surge",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Strengthened NE monsoon; prolonged widespread rain."
+    },
+    {
+      "id": "cold_surge",
+      "label": "Cold surge",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Cold outbreak from East Asia accelerating NE winds."
+    },
+    {
+      "id": "borneo_vortex",
+      "label": "Borneo vortex",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Cyclonic circulation near Borneo in NE monsoon."
+    },
+    {
+      "id": "mjo",
+      "label": "Madden–Julian Oscillation",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "30–60 day eastward convective envelope."
+    },
+    {
+      "id": "equatorial_waves",
+      "label": "Equatorial waves",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Kelvin and Rossby waves modulating convection."
+    },
+    {
+      "id": "enso",
+      "label": "ENSO",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "El Niño drier/hazier; La Niña wetter for the region."
+    },
+    {
+      "id": "iod",
+      "label": "Indian Ocean Dipole",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Positive IOD drier for Sumatra/Singapore."
+    },
+    {
+      "id": "itcz",
+      "label": "ITCZ / monsoon trough",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Equatorial convergence band."
+    },
+    {
+      "id": "asian_monsoon",
+      "label": "Asian–Australian monsoon",
+      "type": "phenomenon",
+      "chapter": "04-dynamics-tropical-circulation.md",
+      "summary": "Seasonal wind reversal."
+    },
+    {
+      "id": "haze",
+      "label": "Transboundary haze",
+      "type": "hazard",
+      "chapter": "15-hazards-health.md",
+      "summary": "Smoke from Sumatra/Kalimantan fires."
+    },
+    {
+      "id": "tropical_cyclone",
+      "label": "Tropical cyclone (distant)",
+      "type": "phenomenon",
+      "chapter": "14-singapore-regional.md",
+      "summary": "Rarely direct; affects moisture and wind."
+    },
+    {
+      "id": "ne_monsoon",
+      "label": "NE monsoon (Dec–early Mar)",
+      "type": "season",
+      "chapter": "14-singapore-regional.md",
+      "summary": "Wet early with surges; drier Feb."
+    },
+    {
+      "id": "inter_monsoon_1",
+      "label": "Inter-monsoon (late Mar–May)",
+      "type": "season",
+      "chapter": "14-singapore-regional.md",
+      "summary": "Light winds; afternoon thunderstorms."
+    },
+    {
+      "id": "sw_monsoon",
+      "label": "SW monsoon (Jun–Sep)",
+      "type": "season",
+      "chapter": "14-singapore-regional.md",
+      "summary": "Drier; Sumatra squalls; haze season."
+    },
+    {
+      "id": "inter_monsoon_2",
+      "label": "Inter-monsoon (Oct–Nov)",
+      "type": "season",
+      "chapter": "14-singapore-regional.md",
+      "summary": "Frequent afternoon/evening storms; wet November."
+    },
+    {
+      "id": "flash_flood",
+      "label": "Flash flood",
+      "type": "hazard",
+      "chapter": "15-hazards-health.md",
+      "summary": "Rapid local flooding from intense short bursts."
+    },
+    {
+      "id": "lightning",
+      "label": "Lightning",
+      "type": "hazard",
+      "chapter": "15-hazards-health.md",
+      "summary": "Strike risk; alert within radius.",
+      "formula": "d ≈ Δt/3 km"
+    },
+    {
+      "id": "squall_wind",
+      "label": "Squall winds",
+      "type": "hazard",
+      "chapter": "15-hazards-health.md",
+      "summary": "40–80 km/h gusts; trees, cranes, tents."
+    },
+    {
+      "id": "heat_stress",
+      "label": "Heat stress",
+      "type": "hazard",
+      "chapter": "15-hazards-health.md",
+      "summary": "WBGT bands <31, 31–33, ≥33 °C (NEA)."
+    },
+    {
+      "id": "heavy_rain",
+      "label": "Heavy rain",
+      "type": "hazard",
+      "chapter": "15-hazards-health.md",
+      "summary": "Intense rain rates; drives flash floods."
+    },
+    {
+      "id": "aws",
+      "label": "Automatic weather station",
+      "type": "instrument",
+      "chapter": "05-observations-qc.md",
+      "summary": "Point T, RH, wind, pressure, rain."
+    },
+    {
+      "id": "rain_gauge",
+      "label": "Tipping-bucket rain gauge",
+      "type": "instrument",
+      "chapter": "05-observations-qc.md",
+      "summary": "Point rainfall; under-catch in heavy rain."
+    },
+    {
+      "id": "radiosonde",
+      "label": "Radiosonde",
+      "type": "instrument",
+      "chapter": "05-observations-qc.md",
+      "summary": "Vertical profiles; basis for stability indices."
+    },
+    {
+      "id": "weather_radar",
+      "label": "Weather radar",
+      "type": "instrument",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "Rain intensity and motion every 5–10 min."
+    },
+    {
+      "id": "dual_pol",
+      "label": "Dual-polarisation radar",
+      "type": "instrument",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "ZDR, KDP, ρHV for drop shape and better rain rates.",
+      "formula": "R ≈ 40.5·KDP^0.85"
+    },
+    {
+      "id": "geo_satellite",
+      "label": "Geostationary satellite (Himawari-9)",
+      "type": "instrument",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "10-min imagery over SE Asia."
+    },
+    {
+      "id": "lightning_network",
+      "label": "Lightning detection network",
+      "type": "instrument",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "Strike location and time."
+    },
+    {
+      "id": "wbgt_station",
+      "label": "WBGT station",
+      "type": "instrument",
+      "chapter": "15-hazards-health.md",
+      "summary": "NEA operates nine; 15-min averages."
+    },
+    {
+      "id": "water_level_sensor",
+      "label": "Drain water-level sensor",
+      "type": "instrument",
+      "chapter": "15-hazards-health.md",
+      "summary": "PUB >1,000 sensors; alerts at 50/75/90/100%."
+    },
+    {
+      "id": "nwp",
+      "label": "Numerical weather prediction",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Physics on a grid from an analysis."
+    },
+    {
+      "id": "primitive_equations",
+      "label": "Primitive equations",
+      "type": "concept",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Momentum, continuity, thermodynamic, moisture, state."
+    },
+    {
+      "id": "data_assimilation",
+      "label": "Data assimilation",
+      "type": "method",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Combine background and observations into an analysis.",
+      "formula": "J(x) = ½(x−x_b)ᵀB⁻¹(x−x_b) + ½(y−H(x))ᵀR⁻¹(y−H(x))"
+    },
+    {
+      "id": "parameterisation",
+      "label": "Parameterisation",
+      "type": "concept",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Sub-grid processes represented by schemes."
+    },
+    {
+      "id": "convection_scheme",
+      "label": "Convection scheme",
+      "type": "concept",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Largest tropical error source; early, light, widespread rain."
+    },
+    {
+      "id": "cfl",
+      "label": "CFL condition",
+      "type": "concept",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Time step limit Δt ≤ CΔx/c.",
+      "formula": "Δt ≤ C·Δx/c_max"
+    },
+    {
+      "id": "effective_resolution",
+      "label": "Effective resolution",
+      "type": "concept",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Resolved features ≈ 4–7 Δx."
+    },
+    {
+      "id": "global_model",
+      "label": "Global deterministic model",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "IFS HRES, GFS, ICON, UM."
+    },
+    {
+      "id": "ifs_hres",
+      "label": "ECMWF IFS HRES",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "9 km global deterministic."
+    },
+    {
+      "id": "ifs_ens",
+      "label": "ECMWF ENS",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "51-member global ensemble."
+    },
+    {
+      "id": "gfs",
+      "label": "NOAA GFS / GEFS",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Open global deterministic and 31-member ensemble."
+    },
+    {
+      "id": "cp_model",
+      "label": "Convection-permitting model",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "≲4 km grid; explicit storms; use probabilistically."
+    },
+    {
+      "id": "singv",
+      "label": "SINGV",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "MSS regional convection-permitting model."
+    },
+    {
+      "id": "ai_model",
+      "label": "AI weather model",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "GraphCast, GenCast, Pangu, FourCastNet, Aurora, AIFS."
+    },
+    {
+      "id": "aifs",
+      "label": "ECMWF AIFS",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Operational AI model at ECMWF."
+    },
+    {
+      "id": "reanalysis",
+      "label": "Reanalysis (ERA5)",
+      "type": "model",
+      "chapter": "07-nwp-ai-models.md",
+      "summary": "Hourly 0.25° history from 1940."
+    },
+    {
+      "id": "ensemble",
+      "label": "Ensemble forecast",
+      "type": "model",
+      "chapter": "09-ensembles-probability.md",
+      "summary": "Perturbed runs sampling uncertainty."
+    },
+    {
+      "id": "qc",
+      "label": "Quality control",
+      "type": "method",
+      "chapter": "05-observations-qc.md",
+      "summary": "Range, step, persistence, consistency, buddy checks."
+    },
+    {
+      "id": "buddy_check",
+      "label": "Buddy check (MAD)",
+      "type": "method",
+      "chapter": "05-observations-qc.md",
+      "summary": "Compare with neighbour median using MAD.",
+      "formula": "|x−med|/max(MAD,σ_floor) > k"
+    },
+    {
+      "id": "representativeness",
+      "label": "Representativeness error",
+      "type": "concept",
+      "chapter": "05-observations-qc.md",
+      "summary": "Point vs grid-box mismatch."
+    },
+    {
+      "id": "idw",
+      "label": "Inverse distance weighting",
+      "type": "method",
+      "chapter": "05-observations-qc.md",
+      "summary": "Grid point observations.",
+      "formula": "w_i = 1/d^p"
+    },
+    {
+      "id": "radar_gauge_merge",
+      "label": "Radar–gauge merging",
+      "type": "method",
+      "chapter": "05-observations-qc.md",
+      "summary": "Adjust radar with gauges.",
+      "formula": "β = ΣG/ΣR"
+    },
+    {
+      "id": "z_r",
+      "label": "Z–R relationship",
+      "type": "method",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "Reflectivity to rain rate; 2–3× uncertainty at high dBZ.",
+      "formula": "Z = aR^b"
+    },
+    {
+      "id": "interpolation",
+      "label": "Spatial interpolation",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Nearest land point or bilinear; not bilinear for rain."
+    },
+    {
+      "id": "bias_correction",
+      "label": "Bias correction",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Running or decaying-average bias removal.",
+      "formula": "b_t = (1−w)b_{t−1} + w(f−o)"
+    },
+    {
+      "id": "quantile_mapping",
+      "label": "Quantile mapping",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Map forecast CDF to observed CDF.",
+      "formula": "f' = F_obs⁻¹(F_fc(f))"
+    },
+    {
+      "id": "mos",
+      "label": "Model output statistics",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Regression from model predictors.",
+      "formula": "ŷ = β0 + Σβ_j x_j"
+    },
+    {
+      "id": "logistic_regression",
+      "label": "Logistic regression",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Probabilities for yes/no events.",
+      "formula": "P = 1/(1+e^−(β0+Σβx))"
+    },
+    {
+      "id": "emos",
+      "label": "EMOS / NGR",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Gaussian predictive distribution from ensemble mean and variance.",
+      "formula": "μ = a + b·x̄, σ² = c + d·s²"
+    },
+    {
+      "id": "isotonic",
+      "label": "Isotonic recalibration",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Monotone mapping of raw to observed probability."
+    },
+    {
+      "id": "blending",
+      "label": "Multi-model blending",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Combine sources with weights.",
+      "formula": "w_m ∝ 1/MSE_m"
+    },
+    {
+      "id": "bma",
+      "label": "Bayesian model averaging",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Weighted mixture of source densities."
+    },
+    {
+      "id": "logodds_blend",
+      "label": "Log-odds blending",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Average probabilities in logit space.",
+      "formula": "logit(p̄) = Σw·logit(p_m)"
+    },
+    {
+      "id": "neighbourhood",
+      "label": "Neighbourhood probability",
+      "type": "method",
+      "chapter": "08-post-processing-blending.md",
+      "summary": "Fraction of points within radius exceeding threshold."
+    },
+    {
+      "id": "ensemble_stats",
+      "label": "Ensemble statistics",
+      "type": "method",
+      "chapter": "09-ensembles-probability.md",
+      "summary": "Mean, spread, quantiles, exceedance.",
+      "formula": "P(X≥τ) ≈ k/N"
+    },
+    {
+      "id": "spread_skill",
+      "label": "Spread–skill relationship",
+      "type": "concept",
+      "chapter": "09-ensembles-probability.md",
+      "summary": "RMSE ≈ √((N+1)/N)·spread when calibrated."
+    },
+    {
+      "id": "rank_histogram",
+      "label": "Rank histogram",
+      "type": "metric",
+      "chapter": "09-ensembles-probability.md",
+      "summary": "Flat = reliable; U = under-dispersive."
+    },
+    {
+      "id": "scenario_clustering",
+      "label": "Scenario clustering",
+      "type": "method",
+      "chapter": "09-ensembles-probability.md",
+      "summary": "Group members into distinct outcomes."
+    },
+    {
+      "id": "pop",
+      "label": "Probability of precipitation",
+      "type": "concept",
+      "chapter": "09-ensembles-probability.md",
+      "summary": "Long-run frequency of rain at a point for that forecast."
+    },
+    {
+      "id": "calibration",
+      "label": "Calibration (reliability)",
+      "type": "concept",
+      "chapter": "09-ensembles-probability.md",
+      "summary": "p-forecasts verify with frequency p."
+    },
+    {
+      "id": "sharpness",
+      "label": "Sharpness",
+      "type": "concept",
+      "chapter": "09-ensembles-probability.md",
+      "summary": "Confidence of forecasts; maximise subject to reliability."
+    },
+    {
+      "id": "model_confidence",
+      "label": "Model confidence (classifier)",
+      "type": "concept",
+      "chapter": "09-ensembles-probability.md",
+      "summary": "A classifier's certainty in its own answer; NOT a weather probability."
+    },
+    {
+      "id": "lagrangian_persistence",
+      "label": "Lagrangian persistence",
+      "type": "method",
+      "chapter": "10-nowcasting.md",
+      "summary": "Advect current rain field forward.",
+      "formula": "R(x,t0+Δt) = R(x−uΔt, t0)"
+    },
+    {
+      "id": "optical_flow",
+      "label": "Optical flow / cross-correlation",
+      "type": "method",
+      "chapter": "10-nowcasting.md",
+      "summary": "Estimate motion field from radar.",
+      "formula": "∂R/∂t + u·∇R = 0"
+    },
+    {
+      "id": "cell_tracking",
+      "label": "Cell tracking",
+      "type": "method",
+      "chapter": "10-nowcasting.md",
+      "summary": "Track storm objects and their trends."
+    },
+    {
+      "id": "eta",
+      "label": "Arrival time estimate",
+      "type": "method",
+      "chapter": "10-nowcasting.md",
+      "summary": "Distance / approach speed, as a window.",
+      "formula": "t ≈ d/(|u|cosα)"
+    },
+    {
+      "id": "steps",
+      "label": "STEPS probabilistic nowcast",
+      "type": "method",
+      "chapter": "10-nowcasting.md",
+      "summary": "Scale-dependent decay with stochastic ensembles."
+    },
+    {
+      "id": "ml_nowcast",
+      "label": "ML nowcasting",
+      "type": "method",
+      "chapter": "10-nowcasting.md",
+      "summary": "DGMR, MetNet: learn growth/decay."
+    },
+    {
+      "id": "convective_initiation",
+      "label": "Convective initiation",
+      "type": "concept",
+      "chapter": "10-nowcasting.md",
+      "summary": "New storm formation; extrapolation can't see it."
+    },
+    {
+      "id": "nowcast_blend",
+      "label": "Nowcast–NWP blend",
+      "type": "method",
+      "chapter": "10-nowcasting.md",
+      "summary": "Lead-time weight from nowcast to NWP.",
+      "formula": "f = α(t)f_nc + (1−α(t))f_nwp"
+    },
+    {
+      "id": "nowcast",
+      "label": "Nowcast (0–6 h)",
+      "type": "concept",
+      "chapter": "10-nowcasting.md",
+      "summary": "Short-range forecast dominated by extrapolation."
+    },
+    {
+      "id": "climatology",
+      "label": "Climatology",
+      "type": "concept",
+      "chapter": "11-climatology-extremes.md",
+      "summary": "Long-term statistics for place/time; baseline."
+    },
+    {
+      "id": "diurnal_cycle",
+      "label": "Diurnal cycle",
+      "type": "concept",
+      "chapter": "11-climatology-extremes.md",
+      "summary": "Daily cycle; strongest single rain predictor in Singapore."
+    },
+    {
+      "id": "anomaly",
+      "label": "Anomaly / standardised anomaly",
+      "type": "method",
+      "chapter": "11-climatology-extremes.md",
+      "summary": "Departure from normal.",
+      "formula": "z = (x−μ)/σ"
+    },
+    {
+      "id": "persistence",
+      "label": "Persistence baseline",
+      "type": "method",
+      "chapter": "11-climatology-extremes.md",
+      "summary": "Tomorrow = today."
+    },
+    {
+      "id": "gamma_dist",
+      "label": "Gamma distribution",
+      "type": "method",
+      "chapter": "11-climatology-extremes.md",
+      "summary": "Model for wet-day rainfall amounts.",
+      "formula": "k̂ = x̄²/s², θ̂ = s²/x̄"
+    },
+    {
+      "id": "return_period",
+      "label": "Return period",
+      "type": "concept",
+      "chapter": "11-climatology-extremes.md",
+      "summary": "T = 1/p; P(≥1 in n yrs) = 1−(1−1/T)^n.",
+      "formula": "P = 1 − (1 − 1/T)^n"
+    },
+    {
+      "id": "gev",
+      "label": "GEV distribution",
+      "type": "method",
+      "chapter": "11-climatology-extremes.md",
+      "summary": "Block-maxima extremes; return levels.",
+      "formula": "x_T = μ − (σ/ξ){1 − [−ln(1−1/T)]^(−ξ)}"
+    },
+    {
+      "id": "idf",
+      "label": "IDF curves",
+      "type": "concept",
+      "chapter": "11-climatology-extremes.md",
+      "summary": "Rain depth by duration and return period; drainage design."
+    },
+    {
+      "id": "climate_trend",
+      "label": "Climate trend",
+      "type": "concept",
+      "chapter": "11-climatology-extremes.md",
+      "summary": "Normals drift; use recent periods."
+    },
+    {
+      "id": "verification",
+      "label": "Verification",
+      "type": "method",
+      "chapter": "12-verification.md",
+      "summary": "Compare forecasts with observations."
+    },
+    {
+      "id": "contingency_table",
+      "label": "Contingency table",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "Hits, false alarms, misses, correct negatives."
+    },
+    {
+      "id": "pod",
+      "label": "POD (hit rate)",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "a/(a+c).",
+      "formula": "POD = a/(a+c)"
+    },
+    {
+      "id": "far",
+      "label": "FAR",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "b/(a+b).",
+      "formula": "FAR = b/(a+b)"
+    },
+    {
+      "id": "csi",
+      "label": "CSI / threat score",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "a/(a+b+c).",
+      "formula": "CSI = a/(a+b+c)"
+    },
+    {
+      "id": "ets",
+      "label": "Equitable threat score",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "CSI corrected for chance.",
+      "formula": "ETS = (a−a_r)/(a+b+c−a_r)"
+    },
+    {
+      "id": "pss",
+      "label": "Peirce skill score",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "POD − POFD.",
+      "formula": "PSS = POD − POFD"
+    },
+    {
+      "id": "freq_bias",
+      "label": "Frequency bias",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "(a+b)/(a+c).",
+      "formula": "Bias = (a+b)/(a+c)"
+    },
+    {
+      "id": "mae_rmse",
+      "label": "ME / MAE / RMSE",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "Continuous error scores.",
+      "formula": "RMSE = √(mean((f−o)²))"
+    },
+    {
+      "id": "skill_score",
+      "label": "Skill score",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "Improvement over a reference.",
+      "formula": "SS = 1 − S/S_ref"
+    },
+    {
+      "id": "brier",
+      "label": "Brier score",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "MSE of probabilities; decomposes into reliability, resolution, uncertainty.",
+      "formula": "BS = (1/n)Σ(p−o)²"
+    },
+    {
+      "id": "reliability_diagram",
+      "label": "Reliability diagram",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "Observed frequency vs forecast probability."
+    },
+    {
+      "id": "roc",
+      "label": "ROC / AUC",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "Discrimination across thresholds."
+    },
+    {
+      "id": "crps",
+      "label": "CRPS",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "Probabilistic score for continuous variables.",
+      "formula": "CRPS = (1/N)Σ|x_i−y| − (1/2N²)ΣΣ|x_i−x_j|"
+    },
+    {
+      "id": "ignorance",
+      "label": "Ignorance (log) score",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "−log2 p(outcome)."
+    },
+    {
+      "id": "fss",
+      "label": "Fractions skill score",
+      "type": "metric",
+      "chapter": "12-verification.md",
+      "summary": "Neighbourhood score for gridded rain.",
+      "formula": "FSS = 1 − MSE/MSE_ref"
+    },
+    {
+      "id": "double_penalty",
+      "label": "Double penalty",
+      "type": "concept",
+      "chapter": "12-verification.md",
+      "summary": "Misplaced storm counted as miss and false alarm."
+    },
+    {
+      "id": "bootstrap",
+      "label": "Bootstrap confidence intervals",
+      "type": "method",
+      "chapter": "12-verification.md",
+      "summary": "Resample (blocks of) days for score uncertainty."
+    },
+    {
+      "id": "scorecard",
+      "label": "Forecast scorecard",
+      "type": "method",
+      "chapter": "12-verification.md",
+      "summary": "Per-source, per-location, per-lead running scores."
+    },
+    {
+      "id": "cost_loss",
+      "label": "Cost–loss model",
+      "type": "decision",
+      "chapter": "13-decisions-communication.md",
+      "summary": "Protect when p > C/L.",
+      "formula": "p > C/L"
+    },
+    {
+      "id": "economic_value",
+      "label": "Economic value",
+      "type": "decision",
+      "chapter": "13-decisions-communication.md",
+      "summary": "Savings relative to climatology and perfect forecasts.",
+      "formula": "V = (E_clim−E_fc)/(E_clim−E_perfect)"
+    },
+    {
+      "id": "expected_expense",
+      "label": "Expected expense minimisation",
+      "type": "decision",
+      "chapter": "13-decisions-communication.md",
+      "summary": "Choose action minimising expected cost.",
+      "formula": "a* = argmin_a [C_a + Σ_s P(s)L_a(s)]"
+    },
+    {
+      "id": "wait_or_act",
+      "label": "Act now or wait",
+      "type": "decision",
+      "chapter": "13-decisions-communication.md",
+      "summary": "Wait when p is near threshold and time allows."
+    },
+    {
+      "id": "impact_based",
+      "label": "Impact-based forecasting",
+      "type": "decision",
+      "chapter": "13-decisions-communication.md",
+      "summary": "Likelihood × impact risk matrix."
+    },
+    {
+      "id": "uncertainty_language",
+      "label": "Uncertainty communication",
+      "type": "decision",
+      "chapter": "13-decisions-communication.md",
+      "summary": "Numbers + calibrated words + reasons."
+    },
+    {
+      "id": "official_warnings",
+      "label": "Official warnings",
+      "type": "decision",
+      "chapter": "15-hazards-health.md",
+      "summary": "NEA/PUB warnings override agent output."
+    },
+    {
+      "id": "datagov_sg",
+      "label": "data.gov.sg (NEA real-time)",
+      "type": "data_source",
+      "chapter": "16-data-sources.md",
+      "summary": "Rain, T, RH, wind, 2-h forecast, PSI, WBGT, lightning."
+    },
+    {
+      "id": "nea_2h",
+      "label": "NEA 2-hour forecast",
+      "type": "data_source",
+      "chapter": "16-data-sources.md",
+      "summary": "Area nowcasts every 30 min."
+    },
+    {
+      "id": "weather_gov_sg",
+      "label": "weather.gov.sg (MSS)",
+      "type": "data_source",
+      "chapter": "16-data-sources.md",
+      "summary": "Radar imagery, climate statistics."
+    },
+    {
+      "id": "pub_alerts",
+      "label": "PUB flood alerts",
+      "type": "data_source",
+      "chapter": "15-hazards-health.md",
+      "summary": "Water-level alerts and flood warnings."
+    },
+    {
+      "id": "open_meteo",
+      "label": "Open-Meteo",
+      "type": "data_source",
+      "chapter": "16-data-sources.md",
+      "summary": "Multi-model and ensemble forecasts via JSON."
+    },
+    {
+      "id": "ecmwf_open",
+      "label": "ECMWF open data",
+      "type": "data_source",
+      "chapter": "16-data-sources.md",
+      "summary": "HRES/ENS/AIFS subset at 0.25°."
+    },
+    {
+      "id": "himawari_data",
+      "label": "Himawari data (AWS/JMA)",
+      "type": "data_source",
+      "chapter": "16-data-sources.md",
+      "summary": "Satellite imagery."
+    },
+    {
+      "id": "imerg",
+      "label": "GPM IMERG / GSMaP",
+      "type": "data_source",
+      "chapter": "06-radar-satellite-lightning.md",
+      "summary": "Satellite rainfall estimates."
+    },
+    {
+      "id": "firms",
+      "label": "NASA FIRMS / ASMC",
+      "type": "data_source",
+      "chapter": "15-hazards-health.md",
+      "summary": "Fire hotspots for haze."
+    },
+    {
+      "id": "mjo_index_source",
+      "label": "BoM/CPC MJO index",
+      "type": "data_source",
+      "chapter": "16-data-sources.md",
+      "summary": "Daily RMM values."
+    },
+    {
+      "id": "sounding_archive",
+      "label": "Wyoming sounding archive",
+      "type": "data_source",
+      "chapter": "16-data-sources.md",
+      "summary": "Radiosonde profiles."
+    },
+    {
+      "id": "era5_cds",
+      "label": "Copernicus CDS (ERA5)",
+      "type": "data_source",
+      "chapter": "16-data-sources.md",
+      "summary": "Reanalysis download."
+    },
+    {
+      "id": "step_router",
+      "label": "1 Router",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Fast typed decisions: intent, urgency, horizon."
+    },
+    {
+      "id": "step_parse",
+      "label": "2 Parse",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Extract location, window, activity, costs."
+    },
+    {
+      "id": "step_warnings",
+      "label": "3 Warnings check",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Official warnings first."
+    },
+    {
+      "id": "step_observe",
+      "label": "4 Observe",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Latest QC'd observations."
+    },
+    {
+      "id": "step_diagnose",
+      "label": "5 Diagnose",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Regime label and ingredients."
+    },
+    {
+      "id": "step_gather",
+      "label": "6 Gather forecasts",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Site and neighbourhood values per source."
+    },
+    {
+      "id": "step_postprocess",
+      "label": "7 Post-process & blend",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Bias correction and weighting."
+    },
+    {
+      "id": "step_probability",
+      "label": "8 Probabilities",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Calibrated event probabilities."
+    },
+    {
+      "id": "step_critic",
+      "label": "9 Critic",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Disagreement, conflicts, worst case, confidence."
+    },
+    {
+      "id": "step_decide",
+      "label": "10 Decide",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Cost–loss recommendation."
+    },
+    {
+      "id": "step_explain",
+      "label": "11 Explain",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "LLM writes from structured object only."
+    },
+    {
+      "id": "step_output_check",
+      "label": "12 Output check",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Numbers trace to data; no contradictions."
+    },
+    {
+      "id": "step_verify",
+      "label": "13 Verify later",
+      "type": "agent_step",
+      "chapter": "17-agent-pipeline.md",
+      "summary": "Score and update weights/calibration."
+    },
+    {
+      "id": "forecaster_workflow",
+      "label": "Forecaster workflow",
+      "type": "concept",
+      "chapter": "01-forecasting-workflow.md",
+      "summary": "Observe → diagnose → consult → reconcile → forecast → communicate → verify."
+    },
+    {
+      "id": "lead_time_regimes",
+      "label": "Lead-time regimes",
+      "type": "concept",
+      "chapter": "01-forecasting-workflow.md",
+      "summary": "Right tool per horizon: nowcast to seasonal."
+    }
+  ],
+  "edges": [
+    {
+      "source": "saturation_vapour_pressure",
+      "relation": "depends_on",
+      "target": "temperature"
+    },
+    {
+      "source": "saturation_vapour_pressure",
+      "relation": "governed_by",
+      "target": "clausius_clapeyron"
+    },
+    {
+      "source": "vapour_pressure",
+      "relation": "computed_from",
+      "target": "dewpoint"
+    },
+    {
+      "source": "relative_humidity",
+      "relation": "computed_from",
+      "target": "vapour_pressure"
+    },
+    {
+      "source": "relative_humidity",
+      "relation": "computed_from",
+      "target": "saturation_vapour_pressure"
+    },
+    {
+      "source": "dewpoint",
+      "relation": "computed_from",
+      "target": "temperature"
+    },
+    {
+      "source": "dewpoint",
+      "relation": "computed_from",
+      "target": "relative_humidity"
+    },
+    {
+      "source": "mixing_ratio",
+      "relation": "computed_from",
+      "target": "vapour_pressure"
+    },
+    {
+      "source": "mixing_ratio",
+      "relation": "computed_from",
+      "target": "pressure"
+    },
+    {
+      "source": "specific_humidity",
+      "relation": "computed_from",
+      "target": "vapour_pressure"
+    },
+    {
+      "source": "virtual_temperature",
+      "relation": "computed_from",
+      "target": "temperature"
+    },
+    {
+      "source": "virtual_temperature",
+      "relation": "computed_from",
+      "target": "specific_humidity"
+    },
+    {
+      "source": "ideal_gas_law",
+      "relation": "uses",
+      "target": "virtual_temperature"
+    },
+    {
+      "source": "thickness",
+      "relation": "computed_from",
+      "target": "virtual_temperature"
+    },
+    {
+      "source": "thickness",
+      "relation": "derived_from",
+      "target": "hydrostatic_balance"
+    },
+    {
+      "source": "potential_temperature",
+      "relation": "computed_from",
+      "target": "temperature"
+    },
+    {
+      "source": "potential_temperature",
+      "relation": "computed_from",
+      "target": "pressure"
+    },
+    {
+      "source": "theta_e",
+      "relation": "computed_from",
+      "target": "potential_temperature"
+    },
+    {
+      "source": "theta_e",
+      "relation": "computed_from",
+      "target": "mixing_ratio"
+    },
+    {
+      "source": "theta_e",
+      "relation": "computed_from",
+      "target": "lcl"
+    },
+    {
+      "source": "lcl",
+      "relation": "computed_from",
+      "target": "dewpoint"
+    },
+    {
+      "source": "lcl",
+      "relation": "computed_from",
+      "target": "temperature"
+    },
+    {
+      "source": "wet_bulb",
+      "relation": "computed_from",
+      "target": "temperature"
+    },
+    {
+      "source": "wet_bulb",
+      "relation": "computed_from",
+      "target": "relative_humidity"
+    },
+    {
+      "source": "heat_index",
+      "relation": "computed_from",
+      "target": "temperature"
+    },
+    {
+      "source": "heat_index",
+      "relation": "computed_from",
+      "target": "relative_humidity"
+    },
+    {
+      "source": "wbgt",
+      "relation": "measured_by",
+      "target": "wbgt_station"
+    },
+    {
+      "source": "wbgt",
+      "relation": "indicates",
+      "target": "heat_stress"
+    },
+    {
+      "source": "heat_index",
+      "relation": "indicates",
+      "target": "heat_stress"
+    },
+    {
+      "source": "conditional_instability",
+      "relation": "defined_by",
+      "target": "lapse_rate"
+    },
+    {
+      "source": "parcel_theory",
+      "relation": "uses",
+      "target": "lcl"
+    },
+    {
+      "source": "parcel_theory",
+      "relation": "uses",
+      "target": "lfc"
+    },
+    {
+      "source": "buoyancy",
+      "relation": "computed_from",
+      "target": "virtual_temperature"
+    },
+    {
+      "source": "cape",
+      "relation": "integrates",
+      "target": "buoyancy"
+    },
+    {
+      "source": "cin",
+      "relation": "integrates",
+      "target": "buoyancy"
+    },
+    {
+      "source": "cape",
+      "relation": "computed_from",
+      "target": "radiosonde"
+    },
+    {
+      "source": "cape",
+      "relation": "computed_from",
+      "target": "nwp"
+    },
+    {
+      "source": "w_max",
+      "relation": "computed_from",
+      "target": "cape"
+    },
+    {
+      "source": "lifted_index",
+      "relation": "uses",
+      "target": "parcel_theory"
+    },
+    {
+      "source": "k_index",
+      "relation": "computed_from",
+      "target": "temperature"
+    },
+    {
+      "source": "k_index",
+      "relation": "computed_from",
+      "target": "dewpoint"
+    },
+    {
+      "source": "total_totals",
+      "relation": "computed_from",
+      "target": "temperature"
+    },
+    {
+      "source": "precipitable_water",
+      "relation": "computed_from",
+      "target": "specific_humidity"
+    },
+    {
+      "source": "convective_ingredients",
+      "relation": "includes",
+      "target": "precipitable_water"
+    },
+    {
+      "source": "convective_ingredients",
+      "relation": "includes",
+      "target": "cape"
+    },
+    {
+      "source": "convective_ingredients",
+      "relation": "includes",
+      "target": "convergence"
+    },
+    {
+      "source": "convective_ingredients",
+      "relation": "includes",
+      "target": "wind_shear"
+    },
+    {
+      "source": "thunderstorm",
+      "relation": "requires",
+      "target": "convective_ingredients"
+    },
+    {
+      "source": "thunderstorm",
+      "relation": "inhibited_by",
+      "target": "cin"
+    },
+    {
+      "source": "thunderstorm",
+      "relation": "weakened_by",
+      "target": "entrainment"
+    },
+    {
+      "source": "thunderstorm",
+      "relation": "indicated_by",
+      "target": "k_index"
+    },
+    {
+      "source": "thunderstorm",
+      "relation": "indicated_by",
+      "target": "lifted_index"
+    },
+    {
+      "source": "thunderstorm",
+      "relation": "produces",
+      "target": "heavy_rain"
+    },
+    {
+      "source": "thunderstorm",
+      "relation": "produces",
+      "target": "lightning"
+    },
+    {
+      "source": "thunderstorm",
+      "relation": "produces",
+      "target": "squall_wind"
+    },
+    {
+      "source": "heavy_rain",
+      "relation": "enhanced_by",
+      "target": "precipitation_efficiency"
+    },
+    {
+      "source": "heavy_rain",
+      "relation": "causes",
+      "target": "flash_flood"
+    },
+    {
+      "source": "wind_shear",
+      "relation": "controls",
+      "target": "sumatra_squall"
+    },
+    {
+      "source": "geostrophic_wind",
+      "relation": "depends_on",
+      "target": "coriolis"
+    },
+    {
+      "source": "rossby_number",
+      "relation": "depends_on",
+      "target": "coriolis"
+    },
+    {
+      "source": "geostrophic_wind",
+      "relation": "invalid_when",
+      "target": "rossby_number"
+    },
+    {
+      "source": "convergence",
+      "relation": "forces",
+      "target": "thunderstorm"
+    },
+    {
+      "source": "sea_breeze",
+      "relation": "causes",
+      "target": "convergence"
+    },
+    {
+      "source": "sea_breeze",
+      "relation": "triggers",
+      "target": "diurnal_convection"
+    },
+    {
+      "source": "urban_heat_island",
+      "relation": "modifies",
+      "target": "diurnal_convection"
+    },
+    {
+      "source": "diurnal_pressure_tide",
+      "relation": "confounds",
+      "target": "pressure"
+    },
+    {
+      "source": "vorticity",
+      "relation": "characterises",
+      "target": "borneo_vortex"
+    },
+    {
+      "source": "asian_monsoon",
+      "relation": "defines",
+      "target": "ne_monsoon"
+    },
+    {
+      "source": "asian_monsoon",
+      "relation": "defines",
+      "target": "sw_monsoon"
+    },
+    {
+      "source": "cold_surge",
+      "relation": "causes",
+      "target": "monsoon_surge"
+    },
+    {
+      "source": "monsoon_surge",
+      "relation": "occurs_in",
+      "target": "ne_monsoon"
+    },
+    {
+      "source": "monsoon_surge",
+      "relation": "produces",
+      "target": "heavy_rain"
+    },
+    {
+      "source": "borneo_vortex",
+      "relation": "interacts_with",
+      "target": "monsoon_surge"
+    },
+    {
+      "source": "sumatra_squall",
+      "relation": "occurs_in",
+      "target": "sw_monsoon"
+    },
+    {
+      "source": "sumatra_squall",
+      "relation": "occurs_in",
+      "target": "inter_monsoon_1"
+    },
+    {
+      "source": "sumatra_squall",
+      "relation": "occurs_in",
+      "target": "inter_monsoon_2"
+    },
+    {
+      "source": "sumatra_squall",
+      "relation": "produces",
+      "target": "squall_wind"
+    },
+    {
+      "source": "sumatra_squall",
+      "relation": "produces",
+      "target": "heavy_rain"
+    },
+    {
+      "source": "diurnal_convection",
+      "relation": "occurs_in",
+      "target": "inter_monsoon_1"
+    },
+    {
+      "source": "diurnal_convection",
+      "relation": "occurs_in",
+      "target": "inter_monsoon_2"
+    },
+    {
+      "source": "diurnal_convection",
+      "relation": "is_a",
+      "target": "thunderstorm"
+    },
+    {
+      "source": "sumatra_squall",
+      "relation": "is_a",
+      "target": "thunderstorm"
+    },
+    {
+      "source": "mjo",
+      "relation": "modulates",
+      "target": "thunderstorm"
+    },
+    {
+      "source": "mjo",
+      "relation": "measured_by",
+      "target": "rmm"
+    },
+    {
+      "source": "equatorial_waves",
+      "relation": "modulates",
+      "target": "thunderstorm"
+    },
+    {
+      "source": "enso",
+      "relation": "measured_by",
+      "target": "nino34"
+    },
+    {
+      "source": "iod",
+      "relation": "measured_by",
+      "target": "dmi"
+    },
+    {
+      "source": "enso",
+      "relation": "modulates",
+      "target": "haze"
+    },
+    {
+      "source": "iod",
+      "relation": "modulates",
+      "target": "haze"
+    },
+    {
+      "source": "haze",
+      "relation": "occurs_in",
+      "target": "sw_monsoon"
+    },
+    {
+      "source": "haze",
+      "relation": "measured_by",
+      "target": "psi"
+    },
+    {
+      "source": "haze",
+      "relation": "measured_by",
+      "target": "pm25"
+    },
+    {
+      "source": "itcz",
+      "relation": "related_to",
+      "target": "asian_monsoon"
+    },
+    {
+      "source": "tropical_cyclone",
+      "relation": "modifies",
+      "target": "haze"
+    },
+    {
+      "source": "temperature",
+      "relation": "measured_by",
+      "target": "aws"
+    },
+    {
+      "source": "relative_humidity",
+      "relation": "measured_by",
+      "target": "aws"
+    },
+    {
+      "source": "wind",
+      "relation": "measured_by",
+      "target": "aws"
+    },
+    {
+      "source": "gust",
+      "relation": "measured_by",
+      "target": "aws"
+    },
+    {
+      "source": "squall_wind",
+      "relation": "measured_as",
+      "target": "gust"
+    },
+    {
+      "source": "rainfall",
+      "relation": "measured_by",
+      "target": "rain_gauge"
+    },
+    {
+      "source": "rainfall",
+      "relation": "measured_by",
+      "target": "weather_radar"
+    },
+    {
+      "source": "reflectivity",
+      "relation": "measured_by",
+      "target": "weather_radar"
+    },
+    {
+      "source": "rain_rate",
+      "relation": "computed_from",
+      "target": "reflectivity"
+    },
+    {
+      "source": "rain_rate",
+      "relation": "computed_by",
+      "target": "z_r"
+    },
+    {
+      "source": "dual_pol",
+      "relation": "improves",
+      "target": "rain_rate"
+    },
+    {
+      "source": "brightness_temperature",
+      "relation": "measured_by",
+      "target": "geo_satellite"
+    },
+    {
+      "source": "cloud_top_cooling",
+      "relation": "computed_from",
+      "target": "brightness_temperature"
+    },
+    {
+      "source": "lightning_rate",
+      "relation": "measured_by",
+      "target": "lightning_network"
+    },
+    {
+      "source": "lightning",
+      "relation": "measured_by",
+      "target": "lightning_network"
+    },
+    {
+      "source": "flash_flood",
+      "relation": "monitored_by",
+      "target": "water_level_sensor"
+    },
+    {
+      "source": "qc",
+      "relation": "applies_to",
+      "target": "aws"
+    },
+    {
+      "source": "qc",
+      "relation": "applies_to",
+      "target": "rain_gauge"
+    },
+    {
+      "source": "qc",
+      "relation": "includes",
+      "target": "buddy_check"
+    },
+    {
+      "source": "representativeness",
+      "relation": "affects",
+      "target": "verification"
+    },
+    {
+      "source": "idw",
+      "relation": "grids",
+      "target": "rainfall"
+    },
+    {
+      "source": "radar_gauge_merge",
+      "relation": "combines",
+      "target": "rain_gauge"
+    },
+    {
+      "source": "radar_gauge_merge",
+      "relation": "combines",
+      "target": "weather_radar"
+    },
+    {
+      "source": "nwp",
+      "relation": "solves",
+      "target": "primitive_equations"
+    },
+    {
+      "source": "nwp",
+      "relation": "initialised_by",
+      "target": "data_assimilation"
+    },
+    {
+      "source": "nwp",
+      "relation": "uses",
+      "target": "parameterisation"
+    },
+    {
+      "source": "nwp",
+      "relation": "constrained_by",
+      "target": "cfl"
+    },
+    {
+      "source": "nwp",
+      "relation": "limited_by",
+      "target": "effective_resolution"
+    },
+    {
+      "source": "parameterisation",
+      "relation": "includes",
+      "target": "convection_scheme"
+    },
+    {
+      "source": "global_model",
+      "relation": "is_a",
+      "target": "nwp"
+    },
+    {
+      "source": "ifs_hres",
+      "relation": "is_a",
+      "target": "global_model"
+    },
+    {
+      "source": "gfs",
+      "relation": "is_a",
+      "target": "global_model"
+    },
+    {
+      "source": "cp_model",
+      "relation": "is_a",
+      "target": "nwp"
+    },
+    {
+      "source": "singv",
+      "relation": "is_a",
+      "target": "cp_model"
+    },
+    {
+      "source": "cp_model",
+      "relation": "avoids",
+      "target": "convection_scheme"
+    },
+    {
+      "source": "ensemble",
+      "relation": "samples_uncertainty_of",
+      "target": "nwp"
+    },
+    {
+      "source": "ifs_ens",
+      "relation": "is_a",
+      "target": "ensemble"
+    },
+    {
+      "source": "ai_model",
+      "relation": "trained_on",
+      "target": "reanalysis"
+    },
+    {
+      "source": "aifs",
+      "relation": "is_a",
+      "target": "ai_model"
+    },
+    {
+      "source": "ai_model",
+      "relation": "weak_at",
+      "target": "heavy_rain"
+    },
+    {
+      "source": "convection_scheme",
+      "relation": "degrades",
+      "target": "diurnal_convection"
+    },
+    {
+      "source": "data_assimilation",
+      "relation": "uses",
+      "target": "radiosonde"
+    },
+    {
+      "source": "data_assimilation",
+      "relation": "uses",
+      "target": "geo_satellite"
+    },
+    {
+      "source": "interpolation",
+      "relation": "applies_to",
+      "target": "nwp"
+    },
+    {
+      "source": "bias_correction",
+      "relation": "applies_to",
+      "target": "nwp"
+    },
+    {
+      "source": "quantile_mapping",
+      "relation": "applies_to",
+      "target": "rainfall"
+    },
+    {
+      "source": "mos",
+      "relation": "applies_to",
+      "target": "nwp"
+    },
+    {
+      "source": "logistic_regression",
+      "relation": "is_a",
+      "target": "mos"
+    },
+    {
+      "source": "emos",
+      "relation": "applies_to",
+      "target": "ensemble"
+    },
+    {
+      "source": "isotonic",
+      "relation": "improves",
+      "target": "calibration"
+    },
+    {
+      "source": "blending",
+      "relation": "uses",
+      "target": "scorecard"
+    },
+    {
+      "source": "blending",
+      "relation": "variant",
+      "target": "bma"
+    },
+    {
+      "source": "blending",
+      "relation": "variant",
+      "target": "logodds_blend"
+    },
+    {
+      "source": "neighbourhood",
+      "relation": "applies_to",
+      "target": "cp_model"
+    },
+    {
+      "source": "neighbourhood",
+      "relation": "mitigates",
+      "target": "double_penalty"
+    },
+    {
+      "source": "ensemble_stats",
+      "relation": "applies_to",
+      "target": "ensemble"
+    },
+    {
+      "source": "pop",
+      "relation": "estimated_by",
+      "target": "ensemble_stats"
+    },
+    {
+      "source": "spread_skill",
+      "relation": "diagnoses",
+      "target": "ensemble"
+    },
+    {
+      "source": "rank_histogram",
+      "relation": "diagnoses",
+      "target": "ensemble"
+    },
+    {
+      "source": "scenario_clustering",
+      "relation": "applies_to",
+      "target": "ensemble"
+    },
+    {
+      "source": "calibration",
+      "relation": "measured_by",
+      "target": "reliability_diagram"
+    },
+    {
+      "source": "sharpness",
+      "relation": "traded_against",
+      "target": "calibration"
+    },
+    {
+      "source": "model_confidence",
+      "relation": "distinct_from",
+      "target": "pop"
+    },
+    {
+      "source": "nowcast",
+      "relation": "uses",
+      "target": "lagrangian_persistence"
+    },
+    {
+      "source": "lagrangian_persistence",
+      "relation": "uses",
+      "target": "optical_flow"
+    },
+    {
+      "source": "optical_flow",
+      "relation": "applies_to",
+      "target": "weather_radar"
+    },
+    {
+      "source": "cell_tracking",
+      "relation": "applies_to",
+      "target": "weather_radar"
+    },
+    {
+      "source": "eta",
+      "relation": "uses",
+      "target": "cell_tracking"
+    },
+    {
+      "source": "steps",
+      "relation": "extends",
+      "target": "lagrangian_persistence"
+    },
+    {
+      "source": "ml_nowcast",
+      "relation": "extends",
+      "target": "lagrangian_persistence"
+    },
+    {
+      "source": "convective_initiation",
+      "relation": "detected_by",
+      "target": "cloud_top_cooling"
+    },
+    {
+      "source": "convective_initiation",
+      "relation": "limits",
+      "target": "lagrangian_persistence"
+    },
+    {
+      "source": "lightning_rate",
+      "relation": "signals",
+      "target": "squall_wind"
+    },
+    {
+      "source": "nowcast_blend",
+      "relation": "combines",
+      "target": "nowcast"
+    },
+    {
+      "source": "nowcast_blend",
+      "relation": "combines",
+      "target": "nwp"
+    },
+    {
+      "source": "nowcast",
+      "relation": "forecasts",
+      "target": "sumatra_squall"
+    },
+    {
+      "source": "nowcast",
+      "relation": "forecasts",
+      "target": "diurnal_convection"
+    },
+    {
+      "source": "climatology",
+      "relation": "includes",
+      "target": "diurnal_cycle"
+    },
+    {
+      "source": "climatology",
+      "relation": "baseline_for",
+      "target": "skill_score"
+    },
+    {
+      "source": "persistence",
+      "relation": "baseline_for",
+      "target": "skill_score"
+    },
+    {
+      "source": "anomaly",
+      "relation": "computed_from",
+      "target": "climatology"
+    },
+    {
+      "source": "gamma_dist",
+      "relation": "models",
+      "target": "rainfall"
+    },
+    {
+      "source": "gev",
+      "relation": "estimates",
+      "target": "return_period"
+    },
+    {
+      "source": "idf",
+      "relation": "uses",
+      "target": "return_period"
+    },
+    {
+      "source": "idf",
+      "relation": "informs",
+      "target": "flash_flood"
+    },
+    {
+      "source": "climate_trend",
+      "relation": "shifts",
+      "target": "climatology"
+    },
+    {
+      "source": "reanalysis",
+      "relation": "provides",
+      "target": "climatology"
+    },
+    {
+      "source": "diurnal_cycle",
+      "relation": "predicts",
+      "target": "diurnal_convection"
+    },
+    {
+      "source": "verification",
+      "relation": "uses",
+      "target": "contingency_table"
+    },
+    {
+      "source": "contingency_table",
+      "relation": "yields",
+      "target": "pod"
+    },
+    {
+      "source": "contingency_table",
+      "relation": "yields",
+      "target": "far"
+    },
+    {
+      "source": "contingency_table",
+      "relation": "yields",
+      "target": "csi"
+    },
+    {
+      "source": "contingency_table",
+      "relation": "yields",
+      "target": "ets"
+    },
+    {
+      "source": "contingency_table",
+      "relation": "yields",
+      "target": "pss"
+    },
+    {
+      "source": "contingency_table",
+      "relation": "yields",
+      "target": "freq_bias"
+    },
+    {
+      "source": "verification",
+      "relation": "uses",
+      "target": "mae_rmse"
+    },
+    {
+      "source": "verification",
+      "relation": "uses",
+      "target": "brier"
+    },
+    {
+      "source": "brier",
+      "relation": "decomposes_into",
+      "target": "calibration"
+    },
+    {
+      "source": "verification",
+      "relation": "uses",
+      "target": "roc"
+    },
+    {
+      "source": "verification",
+      "relation": "uses",
+      "target": "crps"
+    },
+    {
+      "source": "verification",
+      "relation": "uses",
+      "target": "ignorance"
+    },
+    {
+      "source": "verification",
+      "relation": "uses",
+      "target": "fss"
+    },
+    {
+      "source": "fss",
+      "relation": "mitigates",
+      "target": "double_penalty"
+    },
+    {
+      "source": "verification",
+      "relation": "uses",
+      "target": "bootstrap"
+    },
+    {
+      "source": "scorecard",
+      "relation": "built_from",
+      "target": "verification"
+    },
+    {
+      "source": "scorecard",
+      "relation": "feeds",
+      "target": "bias_correction"
+    },
+    {
+      "source": "crps",
+      "relation": "optimised_by",
+      "target": "emos"
+    },
+    {
+      "source": "cost_loss",
+      "relation": "uses",
+      "target": "pop"
+    },
+    {
+      "source": "economic_value",
+      "relation": "computed_from",
+      "target": "contingency_table"
+    },
+    {
+      "source": "economic_value",
+      "relation": "extends",
+      "target": "cost_loss"
+    },
+    {
+      "source": "expected_expense",
+      "relation": "generalises",
+      "target": "cost_loss"
+    },
+    {
+      "source": "wait_or_act",
+      "relation": "uses",
+      "target": "cost_loss"
+    },
+    {
+      "source": "impact_based",
+      "relation": "informs",
+      "target": "uncertainty_language"
+    },
+    {
+      "source": "official_warnings",
+      "relation": "overrides",
+      "target": "cost_loss"
+    },
+    {
+      "source": "datagov_sg",
+      "relation": "provides",
+      "target": "rainfall"
+    },
+    {
+      "source": "datagov_sg",
+      "relation": "provides",
+      "target": "temperature"
+    },
+    {
+      "source": "datagov_sg",
+      "relation": "provides",
+      "target": "wind"
+    },
+    {
+      "source": "datagov_sg",
+      "relation": "provides",
+      "target": "wbgt"
+    },
+    {
+      "source": "datagov_sg",
+      "relation": "provides",
+      "target": "psi"
+    },
+    {
+      "source": "datagov_sg",
+      "relation": "provides",
+      "target": "lightning"
+    },
+    {
+      "source": "nea_2h",
+      "relation": "is_part_of",
+      "target": "datagov_sg"
+    },
+    {
+      "source": "nea_2h",
+      "relation": "provides",
+      "target": "nowcast"
+    },
+    {
+      "source": "weather_gov_sg",
+      "relation": "provides",
+      "target": "weather_radar"
+    },
+    {
+      "source": "weather_gov_sg",
+      "relation": "provides",
+      "target": "climatology"
+    },
+    {
+      "source": "pub_alerts",
+      "relation": "provides",
+      "target": "official_warnings"
+    },
+    {
+      "source": "pub_alerts",
+      "relation": "uses",
+      "target": "water_level_sensor"
+    },
+    {
+      "source": "open_meteo",
+      "relation": "provides",
+      "target": "global_model"
+    },
+    {
+      "source": "open_meteo",
+      "relation": "provides",
+      "target": "ensemble"
+    },
+    {
+      "source": "open_meteo",
+      "relation": "provides",
+      "target": "reanalysis"
+    },
+    {
+      "source": "ecmwf_open",
+      "relation": "provides",
+      "target": "ifs_ens"
+    },
+    {
+      "source": "ecmwf_open",
+      "relation": "provides",
+      "target": "aifs"
+    },
+    {
+      "source": "himawari_data",
+      "relation": "provides",
+      "target": "brightness_temperature"
+    },
+    {
+      "source": "imerg",
+      "relation": "provides",
+      "target": "rainfall"
+    },
+    {
+      "source": "firms",
+      "relation": "provides",
+      "target": "haze"
+    },
+    {
+      "source": "mjo_index_source",
+      "relation": "provides",
+      "target": "rmm"
+    },
+    {
+      "source": "sounding_archive",
+      "relation": "provides",
+      "target": "radiosonde"
+    },
+    {
+      "source": "era5_cds",
+      "relation": "provides",
+      "target": "reanalysis"
+    },
+    {
+      "source": "forecaster_workflow",
+      "relation": "implemented_by",
+      "target": "step_observe"
+    },
+    {
+      "source": "forecaster_workflow",
+      "relation": "implemented_by",
+      "target": "step_diagnose"
+    },
+    {
+      "source": "forecaster_workflow",
+      "relation": "implemented_by",
+      "target": "step_gather"
+    },
+    {
+      "source": "forecaster_workflow",
+      "relation": "implemented_by",
+      "target": "step_critic"
+    },
+    {
+      "source": "forecaster_workflow",
+      "relation": "implemented_by",
+      "target": "step_verify"
+    },
+    {
+      "source": "lead_time_regimes",
+      "relation": "selects",
+      "target": "nowcast"
+    },
+    {
+      "source": "lead_time_regimes",
+      "relation": "selects",
+      "target": "ensemble"
+    },
+    {
+      "source": "step_router",
+      "relation": "next",
+      "target": "step_parse"
+    },
+    {
+      "source": "step_parse",
+      "relation": "next",
+      "target": "step_warnings"
+    },
+    {
+      "source": "step_warnings",
+      "relation": "next",
+      "target": "step_observe"
+    },
+    {
+      "source": "step_observe",
+      "relation": "next",
+      "target": "step_diagnose"
+    },
+    {
+      "source": "step_diagnose",
+      "relation": "next",
+      "target": "step_gather"
+    },
+    {
+      "source": "step_gather",
+      "relation": "next",
+      "target": "step_postprocess"
+    },
+    {
+      "source": "step_postprocess",
+      "relation": "next",
+      "target": "step_probability"
+    },
+    {
+      "source": "step_probability",
+      "relation": "next",
+      "target": "step_critic"
+    },
+    {
+      "source": "step_critic",
+      "relation": "next",
+      "target": "step_decide"
+    },
+    {
+      "source": "step_decide",
+      "relation": "next",
+      "target": "step_explain"
+    },
+    {
+      "source": "step_explain",
+      "relation": "next",
+      "target": "step_output_check"
+    },
+    {
+      "source": "step_output_check",
+      "relation": "next",
+      "target": "step_verify"
+    },
+    {
+      "source": "step_router",
+      "relation": "outputs",
+      "target": "model_confidence"
+    },
+    {
+      "source": "step_warnings",
+      "relation": "uses",
+      "target": "official_warnings"
+    },
+    {
+      "source": "step_observe",
+      "relation": "uses",
+      "target": "qc"
+    },
+    {
+      "source": "step_observe",
+      "relation": "uses",
+      "target": "datagov_sg"
+    },
+    {
+      "source": "step_diagnose",
+      "relation": "uses",
+      "target": "k_index"
+    },
+    {
+      "source": "step_diagnose",
+      "relation": "uses",
+      "target": "cape"
+    },
+    {
+      "source": "step_diagnose",
+      "relation": "uses",
+      "target": "precipitable_water"
+    },
+    {
+      "source": "step_diagnose",
+      "relation": "uses",
+      "target": "rmm"
+    },
+    {
+      "source": "step_gather",
+      "relation": "uses",
+      "target": "neighbourhood"
+    },
+    {
+      "source": "step_gather",
+      "relation": "uses",
+      "target": "open_meteo"
+    },
+    {
+      "source": "step_postprocess",
+      "relation": "uses",
+      "target": "bias_correction"
+    },
+    {
+      "source": "step_postprocess",
+      "relation": "uses",
+      "target": "blending"
+    },
+    {
+      "source": "step_probability",
+      "relation": "uses",
+      "target": "ensemble_stats"
+    },
+    {
+      "source": "step_probability",
+      "relation": "uses",
+      "target": "isotonic"
+    },
+    {
+      "source": "step_probability",
+      "relation": "uses",
+      "target": "nowcast_blend"
+    },
+    {
+      "source": "step_critic",
+      "relation": "uses",
+      "target": "scenario_clustering"
+    },
+    {
+      "source": "step_decide",
+      "relation": "uses",
+      "target": "cost_loss"
+    },
+    {
+      "source": "step_decide",
+      "relation": "uses",
+      "target": "wait_or_act"
+    },
+    {
+      "source": "step_explain",
+      "relation": "uses",
+      "target": "uncertainty_language"
+    },
+    {
+      "source": "step_verify",
+      "relation": "updates",
+      "target": "scorecard"
+    }
+  ]
+}
