@@ -150,3 +150,15 @@ docs/
   meteorology/                     weather knowledge base, knowledge graph, data check
   images/                          screenshots and charts used in this README
 ```
+
+## History: the LangGraph prototype
+
+The first version of this project (June 2026) was a Python prototype: a FastAPI
+backend whose turn loop ran inside a LangGraph `StateGraph`, with the same
+circle-junction scheduler deciding which specialist speaks next. It is kept on
+the branch `claude/repo-product-purpose-smp2e9`
+(`backend/app/orchestration/ring_graph.py` and `langgraph_graph.py`).
+
+`main` is the rewrite: the scheduler, the proof gate and the API moved to a Rust
+(axum) backend, and the LangGraph dependency was dropped. The Rust version does
+not call a language model yet; turns come from templates, as described above.
